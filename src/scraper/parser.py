@@ -1,5 +1,6 @@
 import re
 
+import bs4
 from bs4 import BeautifulSoup
 
 from src.config.logger import logger
@@ -10,6 +11,8 @@ def get_products(category: ScrapedCategory) -> list[Product]:
     category_products = []
     soup = BeautifulSoup(category.html, "html.parser")
     content = soup.find("div", class_="category-detail__content")
+    if not isinstance(content, bs4.Tag):
+        raise ValueError("Unexpected content found in HTML")
     sections = content.find_all("section", recursive=False)
     for section in sections:
         section_products = _parse_section(

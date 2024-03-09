@@ -20,7 +20,7 @@ def insert_html_category(html_category: HtmlCategoryDB) -> int:
     )
     existing_id = cursor.fetchone()
     if existing_id:
-        return existing_id[0]
+        return int(existing_id[0])
 
     # If hash_value doesn't exist, perform insert
     insert_query = sql.SQL(
@@ -55,7 +55,7 @@ def insert_html_category(html_category: HtmlCategoryDB) -> int:
         html_category.subcategory_name,
     )
 
-    return new_id
+    return int(new_id)
 
 
 def insert_product(product: ProductDB) -> int:
@@ -86,7 +86,7 @@ def insert_product(product: ProductDB) -> int:
 
     existing_id = cursor.fetchone()
     if existing_id:
-        return existing_id[0]
+        return int(existing_id[0])
 
     # If product doesn't exist, perform insert
     insert_query = sql.SQL(
@@ -119,7 +119,7 @@ def insert_product(product: ProductDB) -> int:
 
     logger.info("Inserted product: %s (%s)", product.name, product.subcategory_name)
 
-    return new_id
+    return int(new_id)
 
 
 def insert_price(price: PriceDB) -> int:
@@ -151,7 +151,7 @@ def insert_price(price: PriceDB) -> int:
 
     existing_id = cursor.fetchone()
     if existing_id:
-        return existing_id[0]  # Return existing ID if the price already exists
+        return int(existing_id[0])
 
     # If price doesn't exist, perform insert
     insert_query = sql.SQL(
@@ -203,7 +203,7 @@ def insert_price(price: PriceDB) -> int:
         price.html_category_id,
     )
 
-    return new_id
+    return int(new_id)
 
 
 def count_elements_in_table(table_name: str) -> int:
@@ -223,10 +223,14 @@ def count_elements_in_table(table_name: str) -> int:
 
     cursor.execute(query)
 
-    count = cursor.fetchone()[0]
+    # count = cursor.fetchone()[0]
+    result = cursor.fetchone()
+    if not result:
+        raise ValueError(f"No count returned from table `{table_name}`.")
+    count = result[0]
 
     # Close the cursor and connection
     cursor.close()
     conn.close()
 
-    return count
+    return int(count)
