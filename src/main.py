@@ -46,6 +46,6 @@ def main():
                 html_category_id=html_id,
                 product_id=product_id,
             )
-            price_id = db.insert_price(price_db)
+            _ = db.insert_price(price_db)
 
     stats.table_count()

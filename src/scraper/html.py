@@ -39,10 +39,10 @@ def categories() -> list[ScrapedCategory]:
         page.goto(os.getenv("URL_SEED", "default_invalid_url"))
         page.wait_for_load_state("load")
 
-        categories = page.locator("css=span.category-menu__header").all()
-        logger.debug("Found %s categories", len(categories))
+        categories_ = page.locator("css=span.category-menu__header").all()
+        logger.debug("Found %s categories", len(categories_))
         data_by_category = []
-        for category in categories:
+        for category in categories_:
             category.click()
             category_name = category.inner_text()
             page.wait_for_load_state("load")
@@ -63,7 +63,7 @@ def categories() -> list[ScrapedCategory]:
                     html=html_content,
                 )
                 data_by_category.append(scraped_category)
-                logger.info(f"Scraped category: {category_name} - {subcategory_name}")
+                logger.info("Scraped category: %s - %s", category_name, subcategory_name)
 
         browser.close()
 
@@ -82,10 +82,10 @@ def _wait_until_load(page, last_category: bool = False) -> None:
             # This is the last element to load ("Next subcategory" button)
             page.query_selector(selector).wait_for_element_state("stable", timeout=3000)
             break
-        except TimeoutError:
+        except TimeoutError as exc:
             logger.info("Timeout for `%s`", selector)
             if not last_category:
-                raise TimeoutError(f"`{selector}` did not load")
+                raise TimeoutError(f"`{selector}` did not load") from exc
         except AttributeError:
             logger.info("Waiting for `%s`", selector)
             page.wait_for_timeout(1000)

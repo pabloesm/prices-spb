@@ -20,8 +20,12 @@ def get_products(category: ScrapedCategory) -> list[Product]:
         category_products.extend(section_products)
 
     logger.info(
-        f"{category.category_name} - {category.subcategory_name}: {len(category_products)} products."
+        "%s - %s: %s products.",
+        category.category_name,
+        category.subcategory_name,
+        len(category_products),
     )
+
     return category_products
 
 
@@ -33,7 +37,7 @@ def _parse_section(section: BeautifulSoup, category: str, subcategory: str) -> l
     for product_card in product_cards:
         img_url = product_card.find("img")["src"]
         name = product_card.find("h4", class_="product-cell__description-name").text
-        format = product_card.find("div", class_="product-format").text
+        product_format = product_card.find("div", class_="product-format").text
         price = product_card.find("div", class_="product-price").text
         unit_price = product_card.find("p", class_="product-price__unit-price").text
         price, currency = _parse_price(unit_price)
@@ -51,14 +55,14 @@ def _parse_section(section: BeautifulSoup, category: str, subcategory: str) -> l
             previous_price=previous_price,
             currency=currency,
             price_quantity=price_quantity,
-            unit=format,
+            unit=product_format,
             image_url=img_url,
             category_name=category,
             subcategory_name=subcategory,
             section_name=section_name,
         )
         products.append(product)
-        logger.info(f"Scraped product: {name} - {format} - {price} - {currency}")
+        logger.info("Scraped product: %s - %s - %s - %s", name, product_format, price, currency)
 
     return products
 

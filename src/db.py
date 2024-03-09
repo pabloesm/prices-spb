@@ -156,10 +156,24 @@ def insert_price(price: PriceDB) -> int:
     # If price doesn't exist, perform insert
     insert_query = sql.SQL(
         """
-        INSERT INTO price (price, previous_price, currency, price_quantity, html_category_id, product_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO price (
+            price, 
+            previous_price, 
+            currency, 
+            price_quantity, 
+            html_category_id, 
+            product_id
+        )
+        VALUES (
+            %s, 
+            %s, 
+            %s, 
+            %s, 
+            %s, 
+            %s
+        )
         RETURNING id
-    """
+        """
     )
     cursor.execute(
         insert_query,
