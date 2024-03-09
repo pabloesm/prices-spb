@@ -27,5 +27,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/requirements.txt
       - name: Run
+        env:
+          DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
+          URL_SEED: ${{ secrets.URL_SEED }}
         run: |
           python app.py
