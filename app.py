@@ -5,5 +5,4 @@ from src.config.logger import setup_logger
 logger = setup_logger(EnvironmentVars().get_logging_level())
 
 if __name__ == "__main__":
-    print("Running main")
-    # main.main()
+    main.main()

@@ -40,12 +40,14 @@ def categories() -> list[ScrapedCategory]:
         page.wait_for_load_state("load")
 
         categories = page.locator("css=span.category-menu__header").all()
+        logger.debug("Found %s categories", len(categories))
         data_by_category = []
         for category in categories:
             category.click()
             category_name = category.inner_text()
             page.wait_for_load_state("load")
             subcategories = page.locator("css=li.open").locator("li").all()
+            logger.debug("Found %s subcategories", len(subcategories))
             for subcategory in subcategories:
                 subcategory.click()
                 subcategory_name = subcategory.inner_text()
@@ -73,17 +75,17 @@ def _wait_until_load(page, last_category: bool = False) -> None:
     page.wait_for_load_state("load")
     page.wait_for_load_state("networkidle")
     tries = 0
-    while tries < 5:
+    selector = "button.category-detail__next-subcategory"
+    while tries < 3:
         tries += 1
         try:
             # This is the last element to load ("Next subcategory" button)
-            page.query_selector("button.category-detail__next-subcategory").wait_for_element_state(
-                "stable", timeout=3000
-            )
+            page.query_selector(selector).wait_for_element_state("stable", timeout=3000)
             break
         except TimeoutError:
+            logger.info("Timeout for `%s`", selector)
             if not last_category:
-                raise TimeoutError(f"Subcategory did not load")
+                raise TimeoutError(f"`{selector}` did not load")
         except AttributeError:
-            logger.info("Waiting for next subcategory to load")
+            logger.info("Waiting for `%s`", selector)
             page.wait_for_timeout(1000)
