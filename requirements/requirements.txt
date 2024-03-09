@@ -1,0 +1,6 @@
+beautifulsoup4
+playwright
+psycopg2-binary
+pydantic
+types-beautifulsoup4
+types-psycopg2

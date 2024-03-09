@@ -1,0 +1,12 @@
+{
+    "[python]": {
+        "editor.rulers": [
+            100
+        ],
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        },
+    },
+    "editor.formatOnSave": true,
+    "python.analysis.typeCheckingMode": "basic",
+}

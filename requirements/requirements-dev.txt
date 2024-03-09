@@ -1,0 +1,7 @@
+black
+isort
+mypy
+mypy-extensions
+pdbpp
+pylint
+pytest
