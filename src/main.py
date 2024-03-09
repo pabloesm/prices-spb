@@ -1,6 +1,6 @@
 import hashlib
 
-from src import db
+from src import db, stats
 from src.config.logger import logger
 from src.models import HtmlCategoryDB, PriceDB, ProductDB
 from src.scraper import html, parser
@@ -47,3 +47,5 @@ def main():
                 product_id=product_id,
             )
             price_id = db.insert_price(price_db)
+
+    stats.table_count()

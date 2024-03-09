@@ -46,4 +46,8 @@ def test_db():
         )
         price_id = db.insert_price(price_db)
 
-    # Assert
+
+def test_count_elements_in_table():
+    # Act
+    result = db.count_elements_in_table("html_category")
+    logger.info("Table %s has %s elements", "html_category", result)

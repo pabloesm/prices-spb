@@ -1,7 +1,4 @@
-import json
 import os
-from pathlib import Path
-from typing import Union
 
 import psycopg2
 from psycopg2 import sql
@@ -193,3 +190,29 @@ def insert_price(price: PriceDB) -> int:
     )
 
     return new_id
+
+
+def count_elements_in_table(table_name: str) -> int:
+    """
+    Count the number of elements in a PostgreSQL table.
+
+    Args:
+        table_name (str): The name of the table.
+
+    Returns:
+        Union[int, None]: The count of elements in the table, or None if an error occurs.
+    """
+    conn = psycopg2.connect(os.getenv("DATABASE_NEON_URL"))
+    cursor = conn.cursor()
+
+    query = f"SELECT COUNT(*) FROM {table_name};"
+
+    cursor.execute(query)
+
+    count = cursor.fetchone()[0]
+
+    # Close the cursor and connection
+    cursor.close()
+    conn.close()
+
+    return count
