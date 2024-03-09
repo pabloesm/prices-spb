@@ -33,3 +33,8 @@ jobs:
           URL_SEED: ${{ secrets.URL_SEED }}
         run: |
           python app.py
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: snapshots
+          path: ./*.png # or path/to/artifact

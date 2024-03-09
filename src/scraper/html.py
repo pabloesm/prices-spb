@@ -46,6 +46,7 @@ def categories() -> list[ScrapedCategory]:
             category.click()
             category_name = category.inner_text()
             page.wait_for_load_state("load")
+            page.screenshot(path="screenshot_10_category.png")
             subcategories = page.locator("css=li.open").locator("li").all()
             logger.debug("Found %s subcategories", len(subcategories))
             for subcategory in subcategories:
@@ -55,7 +56,7 @@ def categories() -> list[ScrapedCategory]:
                 is_last_subcategory = subcategory == subcategories[-1]
                 _wait_until_load(page, last_category=is_last_subcategory)
 
-                # page.screenshot(path=f"tests/fixtures/{category_name}_{subcategory_name}.png")
+                page.screenshot(path="screenshot_30_subcategory.png")
                 html_content = page.content()
                 scraped_category = ScrapedCategory(
                     category_name=category_name,
@@ -72,11 +73,15 @@ def categories() -> list[ScrapedCategory]:
 
 def _wait_until_load(page, last_category: bool = False) -> None:
     # Waiting logic
+    page.screenshot(path="screenshot_20_wait.png")
     page.wait_for_load_state("load")
+    page.screenshot(path="screenshot_21_wait.png")
     page.wait_for_load_state("networkidle")
+    page.screenshot(path="screenshot_22_wait.png")
     tries = 0
     selector = "button.category-detail__next-subcategory"
     while tries < 3:
+        page.screenshot(path=f"screenshot_23_{tries}_wait.png")
         tries += 1
         try:
             # This is the last element to load ("Next subcategory" button)
