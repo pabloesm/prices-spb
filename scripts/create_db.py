@@ -2,12 +2,11 @@ import os
 
 import psycopg2
 
-
 if os.getenv("DATABASE_NEON_URL") is None:
     raise ValueError("DATABASE_NEON_URL environment variable not set.")
 
 
-def drop_tables():
+def drop_tables() -> None:
     conn = psycopg2.connect(os.getenv("DATABASE_NEON_URL"))
     cur = conn.cursor()
 
@@ -25,7 +24,7 @@ def drop_tables():
     conn.close()
 
 
-def create_tables():
+def create_tables() -> None:
     conn = psycopg2.connect(os.getenv("DATABASE_NEON_URL"))
 
     # Create a cursor object using the connection

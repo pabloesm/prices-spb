@@ -27,6 +27,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/requirements.txt
           playwright install chromium
+      - name: Mypy
+        run: |
+          python -m mypy src/
+      - name: Pylint
+        run: |
+          python -m pylint src/
       - name: Run
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}

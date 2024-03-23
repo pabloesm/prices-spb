@@ -1,3 +1,4 @@
+import hashlib
 import re
 
 import bs4
@@ -33,7 +34,11 @@ def get_products(category: ScrapedCategory) -> list[Product]:
 
 
 def _parse_section(section: BeautifulSoup, category: str, subcategory: str) -> list[Product]:
-    section_name = section.find("h2").text
+    h2_element = section.find("h2")
+    if h2_element is None:
+        raise ValueError("No h2 element found in section")
+
+    section_name = h2_element.text
     product_cards = section.find_all("div", class_="product-cell")
 
     products = []
@@ -85,3 +90,13 @@ def _parse_price(price_string):
         return price, currency
     else:
         raise ValueError("Invalid price format")
+
+
+def compute_hash(scraped_category: ScrapedCategory) -> str:
+    # Remove script tags containing 'google-analytics' in src attribute since they change frequently
+    soup = BeautifulSoup(scraped_category.html, "html.parser")
+    root_div = soup.find("div", id="root")
+    if not isinstance(root_div, bs4.Tag):
+        raise ValueError("Unexpected type found in HTML")
+    root_html = root_div.prettify()
+    return hashlib.sha256(root_html.encode()).hexdigest()

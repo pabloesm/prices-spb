@@ -88,9 +88,9 @@ def _wait_until_load(page, last_category: bool = False) -> None:
             page.query_selector(selector).wait_for_element_state("stable", timeout=3000)
             break
         except TimeoutError as exc:
-            logger.info("Timeout for `%s`", selector)
+            logger.debug("Timeout for `%s`", selector)
             if not last_category:
                 raise TimeoutError(f"`{selector}` did not load") from exc
         except AttributeError:
-            logger.info("Waiting for `%s`", selector)
+            logger.debug("Waiting for `%s`", selector)
             page.wait_for_timeout(1000)

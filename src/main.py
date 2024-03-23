@@ -1,5 +1,3 @@
-import hashlib
-
 from src import db, stats
 from src.config.logger import logger
 from src.models import HtmlCategoryDB, PriceDB, ProductDB
@@ -15,7 +13,7 @@ def main():
 
     for cat_index, products in cat_products_tuple:
         scraped_category = scraped_categories[cat_index]
-        hash_value = hashlib.sha256(scraped_category.html.encode()).hexdigest()
+        hash_value = parser.compute_hash(scraped_category)
         html_category_db = HtmlCategoryDB(
             html=scraped_category.html,
             category_name=scraped_category.category_name,
@@ -34,7 +32,6 @@ def main():
                 section_name=product.section_name,
             )
 
-            # Act
             html_id = db.insert_html_category(html_category_db)
             product_id = db.insert_product(product_db)
 
