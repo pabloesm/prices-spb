@@ -41,8 +41,12 @@ jobs:
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
           URL_SEED: ${{ secrets.URL_SEED }}
+          VPN_USERNAME: ${{ secrets.VPN_USERNAME }}
+          VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
+          API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
+          CF_URL: ${{ vars.CF_URL }}
         run: |
-          python app.py
+          python app.py store
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
