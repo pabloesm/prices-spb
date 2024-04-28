@@ -10,19 +10,6 @@ class ScrapedCategory(BaseModel):
     html: str
 
 
-class Product_DEPRECATED(BaseModel):
-    name: str
-    price: float
-    previous_price: Optional[float]
-    currency: str
-    price_quantity: str
-    unit: str
-    image_url: str
-    category_name: str
-    subcategory_name: str
-    section_name: str
-
-
 class ScannedProduct(BaseModel):
     product_id: float
     category_name: str

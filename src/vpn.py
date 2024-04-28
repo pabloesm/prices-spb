@@ -25,7 +25,7 @@ class Vpn:
         self.vpn_process = None
         self.host_ip = self.get_public_ip()
 
-        self.rotate_index = 25
+        self.rotate_index = 0
         if self.configs_folder:
             self.config_file_paths = get_ovpn_files(self.configs_folder)
             self.config_file_path = self.config_file_paths[self.rotate_index]

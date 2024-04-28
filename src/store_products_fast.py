@@ -49,8 +49,10 @@ async def main():
             details_batch = await get_product_details(ids_batch)
             details.extend(details_batch)
             for item in details_batch:
-                store_product(item)
+                if isinstance(item, dict):
+                    store_product(item)
+                else:
+                    raise ValueError("Unexpected item type")
 
-            breakpoint()
     finally:
         vpn.kill()

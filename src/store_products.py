@@ -76,7 +76,7 @@ def store_product(item: dict) -> None:
     nutrition_data["product_id"] = product_id
     db.insert_nutrition_information(NutritionInformation(**nutrition_data))
 
-    full_info = FullInfo(
+    _ = FullInfo(
         product=Product(**product_data),
         badge=Badge(**badge_data),
         supplier=Supplier(**supplier_data),
