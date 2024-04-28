@@ -3,6 +3,9 @@
 
 name: Python application
 
+env:
+  PYTHONUNBUFFERED: "1"
+
 on:
   push:
     branches: ["main"]
@@ -51,4 +54,6 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: snapshots
-          path: ./*.png # or path/to/artifact
+          path: |
+            ./*.png
+            logger_msgs.log
