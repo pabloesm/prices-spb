@@ -49,7 +49,7 @@ jobs:
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
         run: |
-          sudo python app.py store
+          sudo -E python app.py store
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
