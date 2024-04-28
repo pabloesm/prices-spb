@@ -5,7 +5,8 @@ import bs4
 from bs4 import BeautifulSoup
 
 from src.config.logger import logger
-from src.models import Product, ScrapedCategory
+from src.models import Product_DEPRECATED as Product
+from src.models import ScrapedCategory
 
 
 def get_products(category: ScrapedCategory) -> list[Product]:
@@ -96,7 +97,14 @@ def compute_hash(scraped_category: ScrapedCategory) -> str:
     # Remove script tags containing 'google-analytics' in src attribute since they change frequently
     soup = BeautifulSoup(scraped_category.html, "html.parser")
     root_div = soup.find("div", id="root")
+
     if not isinstance(root_div, bs4.Tag):
         raise ValueError("Unexpected type found in HTML")
+
+    # Remove div with class `overlay` because it contains a versioned element
+    overlay_div = root_div.find("div", class_="overlay")
+    if isinstance(overlay_div, bs4.Tag):
+        overlay_div.decompose()
+
     root_html = root_div.prettify()
     return hashlib.sha256(root_html.encode()).hexdigest()

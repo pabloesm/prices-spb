@@ -1,11 +1,10 @@
 from src import db, stats
 from src.config.logger import logger
 from src.models import HtmlCategoryDB, PriceDB, ProductDB
-from src.scraper import html, parser
+from src.scraper import parser
 
 
 def main():
-    scraped_categories = html.categories()
     cat_products_tuple = []
     for cat_index, scraped_category in enumerate(scraped_categories):
         products_category = parser.get_products(scraped_category)
