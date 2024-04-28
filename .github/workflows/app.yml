@@ -30,16 +30,16 @@ jobs:
           sudo apt-get update
           sudo apt-get --assume-yes --no-install-recommends install openvpn          
           openvpn --version
-          python -m pip install --upgrade pip
-          pip install -r requirements/requirements.txt
-          pip install -r requirements/requirements-dev.txt
+          sudo python -m pip install --upgrade pip
+          sudo pip install -r requirements/requirements.txt
+          sudo pip install -r requirements/requirements-dev.txt
           playwright install chromium
       - name: Mypy
         run: |
-          python -m mypy src/
+          sudo python -m mypy src/
       - name: Pylint
         run: |
-          python -m pylint src/
+          sudo python -m pylint src/
       - name: Run
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
