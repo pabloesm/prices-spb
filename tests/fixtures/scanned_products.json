@@ -1,0 +1,998 @@
+[
+    {
+        "product_id": 1.1,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:35.571189"
+    },
+    {
+        "product_id": 4717.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:36.832927"
+    },
+    {
+        "product_id": 4740.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:38.097749"
+    },
+    {
+        "product_id": 4706.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:39.365647"
+    },
+    {
+        "product_id": 4640.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:40.624880"
+    },
+    {
+        "product_id": 4711.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:41.875771"
+    },
+    {
+        "product_id": 4749.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:43.137583"
+    },
+    {
+        "product_id": 4204.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:44.387515"
+    },
+    {
+        "product_id": 4609.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:45.715903"
+    },
+    {
+        "product_id": 4718.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:46.966694"
+    },
+    {
+        "product_id": 4850.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:48.225754"
+    },
+    {
+        "product_id": 4041.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:49.491625"
+    },
+    {
+        "product_id": 4040.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:50.757427"
+    },
+    {
+        "product_id": 4193.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:52.003473"
+    },
+    {
+        "product_id": 4940.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:53.274818"
+    },
+    {
+        "product_id": 4957.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:54.523476"
+    },
+    {
+        "product_id": 4903.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:55.783647"
+    },
+    {
+        "product_id": 4908.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:57.019691"
+    },
+    {
+        "product_id": 13609.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:58.274470"
+    },
+    {
+        "product_id": 4905.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:52:59.558255"
+    },
+    {
+        "product_id": 4962.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:00.808182"
+    },
+    {
+        "product_id": 26496.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:02.060385"
+    },
+    {
+        "product_id": 19731.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:03.333484"
+    },
+    {
+        "product_id": 19715.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:04.569397"
+    },
+    {
+        "product_id": 19732.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:05.806080"
+    },
+    {
+        "product_id": 19733.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:07.055138"
+    },
+    {
+        "product_id": 29007.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:08.291121"
+    },
+    {
+        "product_id": 29006.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:09.541774"
+    },
+    {
+        "product_id": 19740.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:10.808475"
+    },
+    {
+        "product_id": 19734.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:12.053397"
+    },
+    {
+        "product_id": 34130.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:13.308277"
+    },
+    {
+        "product_id": 29016.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:14.556813"
+    },
+    {
+        "product_id": 19713.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:15.791469"
+    },
+    {
+        "product_id": 19726.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:17.108248"
+    },
+    {
+        "product_id": 19701.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Aceite, vinagre y sal",
+        "scanned_at": "2024-04-05T17:53:18.364249"
+    },
+    {
+        "product_id": 5598.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:21.007883"
+    },
+    {
+        "product_id": 5599.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:22.337847"
+    },
+    {
+        "product_id": 47994.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:23.615583"
+    },
+    {
+        "product_id": 34131.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:24.893212"
+    },
+    {
+        "product_id": 34128.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:26.182844"
+    },
+    {
+        "product_id": 34175.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:27.448950"
+    },
+    {
+        "product_id": 5547.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:28.773714"
+    },
+    {
+        "product_id": 52739.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:30.083985"
+    },
+    {
+        "product_id": 34721.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:31.370488"
+    },
+    {
+        "product_id": 60873.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:32.806850"
+    },
+    {
+        "product_id": 34182.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:34.133623"
+    },
+    {
+        "product_id": 34184.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:35.400296"
+    },
+    {
+        "product_id": 34186.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:36.683431"
+    },
+    {
+        "product_id": 34102.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:37.958838"
+    },
+    {
+        "product_id": 34116.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:39.308576"
+    },
+    {
+        "product_id": 34115.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:40.616025"
+    },
+    {
+        "product_id": 34183.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:41.908487"
+    },
+    {
+        "product_id": 34171.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:43.207047"
+    },
+    {
+        "product_id": 67693.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:44.489309"
+    },
+    {
+        "product_id": 34172.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:45.767094"
+    },
+    {
+        "product_id": 67694.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:47.097435"
+    },
+    {
+        "product_id": 34170.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:48.366692"
+    },
+    {
+        "product_id": 86656.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:49.657132"
+    },
+    {
+        "product_id": 34208.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:50.917969"
+    },
+    {
+        "product_id": 34177.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:52.250215"
+    },
+    {
+        "product_id": 52880.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:53.535267"
+    },
+    {
+        "product_id": 34120.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:54.802216"
+    },
+    {
+        "product_id": 34121.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:56.087221"
+    },
+    {
+        "product_id": 34125.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:57.366341"
+    },
+    {
+        "product_id": 34173.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:58.657255"
+    },
+    {
+        "product_id": 34138.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:53:59.954152"
+    },
+    {
+        "product_id": 34178.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:01.240161"
+    },
+    {
+        "product_id": 37417.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:02.500280"
+    },
+    {
+        "product_id": 34163.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:03.786432"
+    },
+    {
+        "product_id": 34149.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:05.065782"
+    },
+    {
+        "product_id": 34130.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:06.354672"
+    },
+    {
+        "product_id": 34113.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:07.616056"
+    },
+    {
+        "product_id": 34122.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:08.997849"
+    },
+    {
+        "product_id": 60869.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:10.309365"
+    },
+    {
+        "product_id": 23353.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:11.601415"
+    },
+    {
+        "product_id": 11971.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:12.872707"
+    },
+    {
+        "product_id": 11972.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:14.139694"
+    },
+    {
+        "product_id": 86659.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:15.416495"
+    },
+    {
+        "product_id": 34777.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:16.755148"
+    },
+    {
+        "product_id": 34702.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:18.036595"
+    },
+    {
+        "product_id": 17147.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:19.317236"
+    },
+    {
+        "product_id": 86808.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:20.604272"
+    },
+    {
+        "product_id": 34134.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:21.917040"
+    },
+    {
+        "product_id": 34114.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:23.199085"
+    },
+    {
+        "product_id": 52635.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Especias",
+        "scanned_at": "2024-04-05T17:54:24.488291"
+    },
+    {
+        "product_id": 13406.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:27.125592"
+    },
+    {
+        "product_id": 52728.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:28.352767"
+    },
+    {
+        "product_id": 13407.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:29.565406"
+    },
+    {
+        "product_id": 23816.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:30.793061"
+    },
+    {
+        "product_id": 35840.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:32.015782"
+    },
+    {
+        "product_id": 17052.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:33.292512"
+    },
+    {
+        "product_id": 35839.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:34.509778"
+    },
+    {
+        "product_id": 35838.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:35.722498"
+    },
+    {
+        "product_id": 17039.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:36.925570"
+    },
+    {
+        "product_id": 17166.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:38.159105"
+    },
+    {
+        "product_id": 15793.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:39.372268"
+    },
+    {
+        "product_id": 15794.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:40.675752"
+    },
+    {
+        "product_id": 23579.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:41.892446"
+    },
+    {
+        "product_id": 67586.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:43.125791"
+    },
+    {
+        "product_id": 35837.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:44.345575"
+    },
+    {
+        "product_id": 35343.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:45.561528"
+    },
+    {
+        "product_id": 17229.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:46.790768"
+    },
+    {
+        "product_id": 17228.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:47.998368"
+    },
+    {
+        "product_id": 23410.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:49.225796"
+    },
+    {
+        "product_id": 17150.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:50.443258"
+    },
+    {
+        "product_id": 17172.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:51.659460"
+    },
+    {
+        "product_id": 17173.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Mayonesa, ketchup y mostaza",
+        "scanned_at": "2024-04-05T17:54:52.872945"
+    },
+    {
+        "product_id": 17132.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:54:58.773862"
+    },
+    {
+        "product_id": 17151.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:00.042343"
+    },
+    {
+        "product_id": 17108.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:01.315368"
+    },
+    {
+        "product_id": 17163.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:02.582117"
+    },
+    {
+        "product_id": 17131.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:03.850875"
+    },
+    {
+        "product_id": 17110.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:05.122041"
+    },
+    {
+        "product_id": 17153.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:06.401259"
+    },
+    {
+        "product_id": 17128.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:07.676234"
+    },
+    {
+        "product_id": 17330.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:08.956872"
+    },
+    {
+        "product_id": 17154.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:10.216682"
+    },
+    {
+        "product_id": 17346.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:11.506534"
+    },
+    {
+        "product_id": 17502.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:12.759648"
+    },
+    {
+        "product_id": 17347.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:14.026351"
+    },
+    {
+        "product_id": 35780.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:15.293311"
+    },
+    {
+        "product_id": 17396.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:16.565498"
+    },
+    {
+        "product_id": 35412.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:17.826094"
+    },
+    {
+        "product_id": 35438.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:19.100528"
+    },
+    {
+        "product_id": 35545.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:20.359442"
+    },
+    {
+        "product_id": 35546.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:21.626364"
+    },
+    {
+        "product_id": 17410.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:22.892592"
+    },
+    {
+        "product_id": 17409.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:24.164928"
+    },
+    {
+        "product_id": 35186.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:25.444531"
+    },
+    {
+        "product_id": 35184.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:26.748238"
+    },
+    {
+        "product_id": 35183.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:28.033012"
+    },
+    {
+        "product_id": 17360.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:29.336687"
+    },
+    {
+        "product_id": 17362.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:30.602915"
+    },
+    {
+        "product_id": 22721.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:31.881006"
+    },
+    {
+        "product_id": 22613.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:33.162948"
+    },
+    {
+        "product_id": 17382.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:34.436442"
+    },
+    {
+        "product_id": 3840.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:35.724753"
+    },
+    {
+        "product_id": 3852.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:36.986138"
+    },
+    {
+        "product_id": 17327.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:38.248384"
+    },
+    {
+        "product_id": 16827.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:39.498615"
+    },
+    {
+        "product_id": 17386.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:40.768499"
+    },
+    {
+        "product_id": 17366.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:42.036350"
+    },
+    {
+        "product_id": 17265.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:43.302493"
+    },
+    {
+        "product_id": 52467.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:44.568437"
+    },
+    {
+        "product_id": 17259.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:45.831254"
+    },
+    {
+        "product_id": 17348.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:47.098402"
+    },
+    {
+        "product_id": 35344.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:48.382701"
+    },
+    {
+        "product_id": 23137.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:49.649708"
+    },
+    {
+        "product_id": 86713.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:50.933783"
+    },
+    {
+        "product_id": 23072.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:52.215444"
+    },
+    {
+        "product_id": 34157.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:53.501541"
+    },
+    {
+        "product_id": 17441.0,
+        "category_name": "Aceite, especias y salsas",
+        "subcategory_name": "Otras salsas",
+        "scanned_at": "2024-04-05T17:55:54.768536"
+    },
+    {
+        "product_id": 28035.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:55:58.202427"
+    },
+    {
+        "product_id": 23448.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:55:59.478188"
+    },
+    {
+        "product_id": 23449.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:00.769591"
+    },
+    {
+        "product_id": 28491.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:02.050916"
+    },
+    {
+        "product_id": 28499.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:03.317746"
+    },
+    {
+        "product_id": 27061.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:04.606235"
+    },
+    {
+        "product_id": 27054.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:05.897361"
+    },
+    {
+        "product_id": 28566.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:07.189190"
+    },
+    {
+        "product_id": 28567.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:08.453598"
+    },
+    {
+        "product_id": 27088.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:09.744434"
+    },
+    {
+        "product_id": 28060.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:11.042661"
+    },
+    {
+        "product_id": 28269.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:12.341686"
+    },
+    {
+        "product_id": 28270.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:13.640649"
+    },
+    {
+        "product_id": 28163.0,
+        "category_name": "Agua y refrescos",
+        "subcategory_name": "Agua",
+        "scanned_at": "2024-04-05T17:56:14.935270"
+    }
+]

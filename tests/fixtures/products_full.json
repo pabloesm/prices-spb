@@ -1,0 +1,324 @@
+[
+    {
+        "id": "60722",
+        "ean": "8480000607225",
+        "slug": "chocolate-negro-85-cacao-hacendado-tableta",
+        "brand": "Hacendado",
+        "limit": 999,
+        "badges": {
+            "is_water": false,
+            "requires_age_check": false
+        },
+        "origin": "Portugal",
+        "photos": [
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/aa3a4cd534eeeb52ad2ddd8fea969c8f.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/aa3a4cd534eeeb52ad2ddd8fea969c8f.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/aa3a4cd534eeeb52ad2ddd8fea969c8f.jpg?fit=crop&h=300&w=300",
+                "perspective": 2
+            },
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/c46adbda2063c9859809e494d950f6d1.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/c46adbda2063c9859809e494d950f6d1.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/c46adbda2063c9859809e494d950f6d1.jpg?fit=crop&h=300&w=300",
+                "perspective": 9
+            }
+        ],
+        "details": {
+            "brand": "Hacendado",
+            "origin": "Portugal",
+            "suppliers": [
+                {
+                    "name": "Imperial - Produtos Alimentares, S.A."
+                }
+            ],
+            "legal_name": "Chocolate negro",
+            "description": "Chocolate negro 85% cacao Hacendado",
+            "counter_info": null,
+            "danger_mentions": null,
+            "alcohol_by_volume": null,
+            "mandatory_mentions": "Sin gluten",
+            "production_variant": null,
+            "usage_instructions": null,
+            "storage_instructions": "Mantener en lugar fresco y seco"
+        },
+        "is_bulk": false,
+        "packaging": "Tableta",
+        "published": true,
+        "share_url": "https://tienda.mercadona.es/product/60722/chocolate-negro-85-cacao-hacendado-tableta",
+        "thumbnail": "https://prod-mercadona.imgix.net/images/aa3a4cd534eeeb52ad2ddd8fea969c8f.jpg?fit=crop&h=300&w=300",
+        "categories": [
+            {
+                "id": 9,
+                "name": "Azúcar, caramelos y chocolate",
+                "level": 0,
+                "order": 11,
+                "categories": [
+                    {
+                        "id": 92,
+                        "name": "Chocolate",
+                        "level": 1,
+                        "order": 11,
+                        "categories": [
+                            {
+                                "id": 382,
+                                "name": "Chocolate negro",
+                                "level": 2,
+                                "order": 11
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "extra_info": [
+            null
+        ],
+        "display_name": "Chocolate negro 85% cacao Hacendado",
+        "unavailable_from": null,
+        "is_variable_weight": false,
+        "price_instructions": {
+            "iva": 10,
+            "is_new": false,
+            "is_pack": false,
+            "pack_size": null,
+            "unit_name": null,
+            "unit_size": 0.1,
+            "bulk_price": "12.50",
+            "unit_price": "1.25",
+            "approx_size": false,
+            "size_format": "kg",
+            "total_units": null,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "price_decreased": false,
+            "reference_price": "12.500",
+            "min_bunch_amount": 1.0,
+            "reference_format": "kg",
+            "previous_unit_price": null,
+            "increment_bunch_amount": 1.0
+        },
+        "unavailable_weekdays": [],
+        "nutrition_information": {
+            "allergens": null,
+            "ingredients": "Pasta de cacao, azúcar, manteca de cacao, cacao  desgrasado en polvo, emulgente (lecitina de <strong>soja</strong>) y aroma. Cacao: 85%  mínimo. Puede contener <strong>trazas de leche y sus derivados y  frutos de cáscara</strong>. Sin gluten."
+        }
+    },
+    {
+        "id": "28574",
+        "ean": "8480000285744",
+        "slug": "bebida-isotonica-sabor-citrico-iso-drink-hacendado-lata",
+        "brand": "Iso drink",
+        "limit": 999,
+        "badges": {
+            "is_water": false,
+            "requires_age_check": false
+        },
+        "origin": null,
+        "photos": [
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/52a7c2dc1b7454f0c887365c20f4594c.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/52a7c2dc1b7454f0c887365c20f4594c.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/52a7c2dc1b7454f0c887365c20f4594c.jpg?fit=crop&h=300&w=300",
+                "perspective": 2
+            },
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/0cccf07f39b0fc54be600314b00aee2c.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/0cccf07f39b0fc54be600314b00aee2c.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/0cccf07f39b0fc54be600314b00aee2c.jpg?fit=crop&h=300&w=300",
+                "perspective": 9
+            }
+        ],
+        "details": {
+            "brand": "Iso drink",
+            "origin": null,
+            "suppliers": [
+                {
+                    "name": "Font Salem S.L."
+                },
+                {
+                    "name": "Refresco Iberia S.A.U."
+                }
+            ],
+            "legal_name": "BEBIDA REFRESCANTE AROMATIZADA. CON AZÚCAR Y EDULCORANTES.",
+            "description": "Bebida isotónica sabor cítrico Iso drink Hacendado",
+            "counter_info": null,
+            "danger_mentions": "",
+            "alcohol_by_volume": null,
+            "mandatory_mentions": "Con azúcar y edulcorante.",
+            "production_variant": "Se añaden un registro de empresa en función de donde se produce el producto: planta Sevilla.",
+            "usage_instructions": "",
+            "storage_instructions": "Proteger de la luz y de olores agresivos. Conservar en lugar limpio, fresco y seco."
+        },
+        "is_bulk": false,
+        "packaging": "Lata",
+        "published": true,
+        "share_url": "https://tienda.mercadona.es/product/28574/bebida-isotonica-sabor-citrico-iso-drink-hacendado-lata",
+        "thumbnail": "https://prod-mercadona.imgix.net/images/52a7c2dc1b7454f0c887365c20f4594c.jpg?fit=crop&h=300&w=300",
+        "categories": [
+            {
+                "id": 18,
+                "name": "Agua y refrescos",
+                "level": 0,
+                "order": 8,
+                "categories": [
+                    {
+                        "id": 163,
+                        "name": "Isotónico y energético",
+                        "level": 1,
+                        "order": 8,
+                        "categories": [
+                            {
+                                "id": 548,
+                                "name": "Isotónico",
+                                "level": 2,
+                                "order": 8
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "extra_info": [
+            null
+        ],
+        "display_name": "Bebida isotónica sabor cítrico Iso drink",
+        "unavailable_from": null,
+        "is_variable_weight": false,
+        "price_instructions": {
+            "iva": 21,
+            "is_new": false,
+            "is_pack": false,
+            "pack_size": null,
+            "unit_name": null,
+            "unit_size": 0.33,
+            "bulk_price": "1.36",
+            "unit_price": "0.45",
+            "approx_size": false,
+            "size_format": "l",
+            "total_units": null,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "price_decreased": false,
+            "reference_price": "1.364",
+            "min_bunch_amount": 1.0,
+            "reference_format": "L",
+            "previous_unit_price": null,
+            "increment_bunch_amount": 1.0
+        },
+        "unavailable_weekdays": [],
+        "nutrition_information": {
+            "allergens": " <strong>x99</strong>.  <strong>x99</strong>.",
+            "ingredients": "<p>Agua, azúcar, acidulantes: ácido cítrico, ácido málico; sal, aromas, correctores de acidez: citratos de sodio, fosfato potásico, fosfato cálcico; antioxidante: ácido ascórbico; estabilizantes: E 414, E 445, E 444; edulcorante: sucralosa."
+        }
+    },
+    {
+        "id": "34212",
+        "ean": "8480000342126",
+        "slug": "palomitas-maiz-sabor-mantequilla-hacendado-microondas-paquete",
+        "brand": "Hacendado",
+        "limit": 999,
+        "badges": {
+            "is_water": false,
+            "requires_age_check": false
+        },
+        "origin": "España",
+        "photos": [
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/a61b56352cf06733952e4e5a59ad0cde.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/a61b56352cf06733952e4e5a59ad0cde.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/a61b56352cf06733952e4e5a59ad0cde.jpg?fit=crop&h=300&w=300",
+                "perspective": 2
+            },
+            {
+                "zoom": "https://prod-mercadona.imgix.net/images/78f505bfdf25cb5f0de4bff10571eb11.jpg?fit=crop&h=1600&w=1600",
+                "regular": "https://prod-mercadona.imgix.net/images/78f505bfdf25cb5f0de4bff10571eb11.jpg?fit=crop&h=600&w=600",
+                "thumbnail": "https://prod-mercadona.imgix.net/images/78f505bfdf25cb5f0de4bff10571eb11.jpg?fit=crop&h=300&w=300",
+                "perspective": 9
+            }
+        ],
+        "details": {
+            "brand": "Hacendado",
+            "origin": "España",
+            "suppliers": [
+                {
+                    "name": "IMPORTACO CASA PONS S.A.U."
+                }
+            ],
+            "legal_name": "PALOMITAS MICROONDAS SABOR MANTEQUILLA",
+            "description": "Palomitas de maíz sabor mantequilla Hacendado para microondas",
+            "counter_info": null,
+            "danger_mentions": null,
+            "alcohol_by_volume": null,
+            "mandatory_mentions": "ESTE PRODUCTO POR SU TAMAÑO NO LO DEBEN CONSUMIR MENORES DE 5 AÑOS.",
+            "production_variant": null,
+            "usage_instructions": "1. Colocar la bolsa en el microondas con las palabras \"ESTE LADO HACIA ABAJO\". Cocinar entre 2-3 min. a máxima potencia. 2. 1-2 seg. Entre POP. Parar y listo!!. 3. Sacar la bolsa con cuidado y dejar enfriar. Abrir con cuidado por las flechas. Una vez preparadas las palomitas, se recomienda consumir en el plazo de 30 minutos.",
+            "storage_instructions": "Proteger de la luz. Conservar en lugar fresco y seco."
+        },
+        "packaging": "Paquete",
+        "published": true,
+        "share_url": "https://tienda.mercadona.es/product/34212/palomitas-maiz-sabor-mantequilla-hacendado-microondas-paquete",
+        "thumbnail": "https://prod-mercadona.imgix.net/images/a61b56352cf06733952e4e5a59ad0cde.jpg?fit=crop&h=300&w=300",
+        "categories": [
+            {
+                "id": 15,
+                "name": "Aperitivos",
+                "level": 0,
+                "order": 9,
+                "categories": [
+                    {
+                        "id": 133,
+                        "name": "Frutos secos y fruta desecada",
+                        "level": 1,
+                        "order": 9,
+                        "categories": [
+                            {
+                                "id": 479,
+                                "name": "Frutos secos",
+                                "level": 2,
+                                "order": 9
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "extra_info": [
+            null
+        ],
+        "display_name": "Palomitas de maíz sabor mantequilla Hacendado para microondas",
+        "is_variable_weight": false,
+        "price_instructions": {
+            "iva": 10,
+            "is_new": false,
+            "is_pack": false,
+            "pack_size": null,
+            "unit_name": "ud.",
+            "unit_size": 0.27,
+            "bulk_price": "5.00",
+            "unit_price": "1.35",
+            "approx_size": false,
+            "size_format": "kg",
+            "total_units": 3,
+            "unit_selector": true,
+            "bunch_selector": false,
+            "drained_weight": null,
+            "selling_method": 0,
+            "price_decreased": false,
+            "reference_price": "5.000",
+            "min_bunch_amount": 1.0,
+            "reference_format": "kg",
+            "previous_unit_price": null,
+            "increment_bunch_amount": 1.0
+        },
+        "unavailable_weekdays": [],
+        "nutrition_information": {
+            "allergens": null,
+            "ingredients": "<p>Maíz, grasa de palma, sal, aroma, potenciador del sabor (E-621), maltodextrina y colorante (beta caroteno)."
+        }
+    }
+]

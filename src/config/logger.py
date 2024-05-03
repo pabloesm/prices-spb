@@ -1,8 +1,7 @@
 import logging
 import os
 import sys
-
-from src.config.environment_vars import EnvironmentVars
+from pathlib import Path
 
 LOGGER_NAME = "prices-spb"
 
@@ -23,14 +22,15 @@ class PackagePathFilter(logging.Filter):
         return True
 
 
-def setup_logger(log_level: int):
-    logger_obj = logging.getLogger(LOGGER_NAME)
-    logger_obj.setLevel(log_level)
+def setup_logger(log_level: int, log_file_path: str = "logger_msgs.log"):
+    # Check if the file exists and delete it
+    if Path(log_file_path).exists():
+        Path(log_file_path).unlink()
 
-    log_format = (
-        "%(asctime)s.%(msecs)03d | %(levelname)-8s | "
-        "[%(relativepath)s:%(funcName)s:%(lineno)s]: %(message)s"
-    )
+    logger_ = logging.getLogger(LOGGER_NAME)
+    logger_.setLevel(log_level)
+
+    log_format = "%(asctime)s.%(msecs)03d | %(levelname)-8s | [%(relativepath)s:%(funcName)s:%(lineno)s]: %(message)s"
     date_format = "%Y-%m-%d:%H:%M:%S"
     formatter = logging.Formatter(log_format, datefmt=date_format)
 
@@ -40,10 +40,21 @@ def setup_logger(log_level: int):
     stream_handler.addFilter(PackagePathFilter())
     stream_handler.setFormatter(formatter)
 
-    if not any(isinstance(handler, logging.StreamHandler) for handler in logger_obj.handlers):
-        logger_obj.addHandler(stream_handler)
+    # Create a FileHandler to store logs in a file
+    try:
+        file_handler = logging.FileHandler(log_file_path, mode="a")
+        file_handler.setLevel(log_level)
+        file_handler.addFilter(PackagePathFilter())
+        file_handler.setFormatter(formatter)
+        if file_handler not in logger_.handlers:
+            logger_.addHandler(file_handler)
+    except AttributeError:
+        pass
 
-    return logger_obj
+    if stream_handler not in logger_.handlers:
+        logger_.addHandler(stream_handler)
+
+    return logger_
 
 
 def get_logger():

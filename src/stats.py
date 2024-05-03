@@ -1,7 +1,7 @@
 from src.config.logger import logger
 from src.db import count_elements_in_table
 
-tables = ["html_category", "product", "price"]
+tables = ["scanned_products", "product", "category"]
 
 
 def table_count():
