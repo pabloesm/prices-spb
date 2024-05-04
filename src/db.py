@@ -413,11 +413,11 @@ def insert_price_instruction(instruction: PriceInstruction) -> int:
                 bulk_price, unit_price, approx_size, size_format, total_units,
                 unit_selector, bunch_selector, drained_weight, selling_method,
                 price_decreased, reference_price, min_bunch_amount, reference_format,
-                previous_unit_price, increment_bunch_amount, created_at
+                previous_unit_price, increment_bunch_amount
             )
             VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s
             )
             RETURNING id
         """
@@ -447,7 +447,6 @@ def insert_price_instruction(instruction: PriceInstruction) -> int:
                 instruction.reference_format,
                 instruction.previous_unit_price,
                 instruction.increment_bunch_amount,
-                instruction.created_at,
             ),
         )
 
