@@ -138,12 +138,11 @@ def compute(initial_state: ScanState) -> ScanState:
                         except TimeoutError as err:
                             page.screenshot(path="screenshot_36_product_TimeoutError.png")
                             raise TimeoutError from err
-                        
 
                     logger.info(
-                        "Scraped category: %s - %s", 
+                        "Scraped category: %s - %s",
                         current_state.category_name,
-                        current_state.subcategory_name
+                        current_state.subcategory_name,
                     )
     except pw_TimeoutError:
         time.sleep(SLEEP_TIME_SECONDS)
