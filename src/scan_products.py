@@ -4,29 +4,36 @@ from src import db
 from src.config.logger import logger
 from src.models import ScannedProduct
 from src.scraper import get_product_basic
+from src.scraper.get_product_basic import ScanState
 
 N_TRIES = 80
 
 
 def get_scanned_products() -> list[ScannedProduct]:
-    products: list[ScannedProduct] = []
-    cat = ""
-    subcat = ""
+    scan_state = ScanState(
+        scanned_products=[],
+        category_name="",
+        subcategory_name="",
+        is_finished=False,
+    )
     tries = 0
     while tries < N_TRIES:
         logger.debug(
-            "Current products IDs. Size:%s; cat: %s subcat: %s", len(products), cat, subcat
+            "Current products IDs. Size:%s; cat: %s subcat: %s",
+            len(scan_state.scanned_products),
+            scan_state.category_name,
+            scan_state.subcategory_name,
         )
-        products, cat, subcat = get_product_basic.compute(products, cat, subcat)
+        scan_state = get_product_basic.compute(scan_state)
         tries += 1
-        if cat == "" and subcat == "":
+        if scan_state.is_finished:
             break
 
     if N_TRIES == tries:
         logger.error("Reached maximum number of tries")
         raise ValueError("Reached maximum number of tries when trying to get product IDs")
 
-    return products
+    return scan_state.scanned_products
 
 
 def main():
@@ -45,4 +52,5 @@ def main():
     logger.info("Number of new products: %s", len(new_products))
     for new_product in new_products:
         logger.debug("Parsing product: %s", new_product.product_id)
+        db.insert_scanned_product(new_product)
         db.insert_scanned_product(new_product)
