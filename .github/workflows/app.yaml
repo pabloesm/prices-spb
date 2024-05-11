@@ -1,0 +1,42 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: Python application
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes --no-install-recommends install openvpn          
+          openvpn --version
+          sudo python -m pip install --upgrade pip
+          sudo pip install -r requirements/requirements.txt
+          sudo pip install -r requirements/requirements-dev.txt
+          playwright install chromium
+      - name: Mypy
+        run: |
+          sudo python -m mypy src/
+      - name: Pylint
+        run: |
+          sudo python -m pylint src/

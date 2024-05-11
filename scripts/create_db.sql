@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS category CASCADE;
 DROP TABLE IF EXISTS product_category CASCADE;
 DROP TABLE IF EXISTS price_instruction CASCADE;
 DROP TABLE IF EXISTS nutrition_information CASCADE;
--- DROP TABLE IF EXISTS scanned_products CASCADE;
+DROP TABLE IF EXISTS scanned_products CASCADE;
 
 
 -- Badge Table
@@ -111,9 +111,10 @@ CREATE TABLE nutrition_information (
     ingredients TEXT
 );
 
--- CREATE TABLE scanned_products (
---     product_id FLOAT PRIMARY KEY,
---     category_name VARCHAR(255),
---     subcategory_name VARCHAR(255),
---     scanned_at TIMESTAMP
--- );
+-- Scanned_Products Table
+CREATE TABLE scanned_products (
+    product_id NUMERIC(10,3) PRIMARY KEY,
+    category_name VARCHAR(255),
+    subcategory_name VARCHAR(255),
+    scanned_at TIMESTAMP
+);
