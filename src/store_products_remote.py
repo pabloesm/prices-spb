@@ -47,7 +47,7 @@ async def make_request_post(session, product_details: dict) -> Any:
 
 
 async def store_product_details(products_ids: list[float]):
-    async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver())) as session:
+    async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver()), timeout=5.0) as session:
         tasks_get = []
         for product_id in products_ids:
             task = asyncio.create_task(make_request_get(session, product_id))
@@ -63,15 +63,24 @@ async def store_product_details(products_ids: list[float]):
             tasks_post.append(task)
 
         posts_responses = await asyncio.gather(*tasks_post, return_exceptions=True)
+        logger.info("Posts responses: %s", posts_responses)
         return posts_responses
+
+
+def warm_up_endpoint():
+    for _ in range(3):
+        response = httpx.get(CF_URL)
+        logger.info("Warm up response: %s", response.json())
+        time.sleep(1)
 
 
 async def main():
     vpn = Vpn(configs_folder=FOLDER_PATH)
     try:
+        warm_up_endpoint()
         stored_products_ids = db.get_all_scanned_product_ids()
         # For each `batch_size` products IDS
-        batch_size = 45
+        batch_size = 35
         for i in range(0, len(stored_products_ids), batch_size):
             vpn.rotate()
             ids_batch = stored_products_ids[i : i + batch_size]
