@@ -182,7 +182,7 @@ def _wait_until_load(page, last_category: bool = False) -> None:
         except TimeoutError as exc:
             logger.debug("Timeout for `%s`", selector)
             if not last_category:
-                raise TimeoutError(f"`{selector}` did not load") from exc
+                raise pw_TimeoutError(f"`{selector}` did not load") from exc
         except AttributeError:
             logger.debug("Waiting for `%s`", selector)
             page.wait_for_timeout(1000)
