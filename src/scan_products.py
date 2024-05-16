@@ -1,12 +1,16 @@
 import pickle
+from pathlib import Path
 
 from src import db
 from src.config.logger import logger
 from src.models import ScannedProduct
 from src.scraper import get_product_basic
 from src.scraper.get_product_basic import ScanState
+from src.vpn import Vpn
 
 N_TRIES = 120
+
+FOLDER_PATH = Path("vpn_configs")
 
 
 def get_scanned_products() -> list[ScannedProduct]:
@@ -17,17 +21,22 @@ def get_scanned_products() -> list[ScannedProduct]:
         is_finished=False,
     )
     tries = 0
-    while tries < N_TRIES:
-        logger.debug(
-            "Current products IDs. Size:%s; cat: %s subcat: %s",
-            len(scan_state.scanned_products),
-            scan_state.category_name,
-            scan_state.subcategory_name,
-        )
-        scan_state = get_product_basic.compute(scan_state)
-        tries += 1
-        if scan_state.is_finished:
-            break
+    vpn = Vpn(configs_folder=FOLDER_PATH)
+    try:
+        while tries < N_TRIES:
+            logger.debug(
+                "Current products IDs. Size:%s; cat: %s subcat: %s",
+                len(scan_state.scanned_products),
+                scan_state.category_name,
+                scan_state.subcategory_name,
+            )
+            vpn.rotate()
+            scan_state = get_product_basic.compute(scan_state)
+            tries += 1
+            if scan_state.is_finished:
+                break
+    finally:
+        vpn.kill()
 
     if N_TRIES == tries:
         logger.error("Reached maximum number of tries")

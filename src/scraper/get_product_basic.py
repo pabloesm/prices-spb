@@ -15,7 +15,7 @@ from src.scraper import exceptions, utils
 if os.getenv("URL_SEED") is None:
     raise ValueError("URL_SEED environment variable not set.")
 
-SLEEP_TIME_SECONDS = 120
+SLEEP_TIME_SECONDS = 1
 
 
 class ScanState(BaseModel):
