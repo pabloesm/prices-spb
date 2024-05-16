@@ -16,6 +16,7 @@ if os.getenv("URL_SEED") is None:
     raise ValueError("URL_SEED environment variable not set.")
 
 SLEEP_TIME_SECONDS = 1
+PW_TIMEOUT_MS = 5000
 
 
 class ScanState(BaseModel):
@@ -53,8 +54,9 @@ def compute(initial_state: ScanState) -> ScanState:
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, slow_mo=500, timeout=15000)
+            browser = p.chromium.launch(headless=True, slow_mo=500, timeout=PW_TIMEOUT_MS)
             page = browser.new_page()
+            page.set_default_timeout(PW_TIMEOUT_MS)
             page.context.add_cookies(cookies)
             page.goto(os.getenv("URL_SEED", "default_invalid_url"))
             page.wait_for_load_state("load")
