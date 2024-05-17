@@ -6,7 +6,7 @@ from src.models import ScannedProduct
 from src.scraper import get_product_basic
 from src.scraper.get_product_basic import ScanState
 
-N_TRIES = 80
+N_TRIES = 120
 
 
 def get_scanned_products() -> list[ScannedProduct]:
