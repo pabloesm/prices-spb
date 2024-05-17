@@ -14,12 +14,15 @@ FOLDER_PATH = Path("vpn_configs")
 def main():
     vpn = Vpn(configs_folder=FOLDER_PATH)
     try:
-        vpn.rotate()
-        with httpx.Client() as client:
-            response = client.get("https://httpbin.org/ip")
-            logger.info(response.json())
+        logger.info("Starting VPN rotation...")
+        for i in range(25):
+            vpn.rotate()
+            with httpx.Client() as client:
+                response = client.get("https://httpbin.org/ip")
+                logger.info(response.json())
     finally:
         vpn.kill()
+        logger.info("VPN killed!")
 
 
 if __name__ == "__main__":
