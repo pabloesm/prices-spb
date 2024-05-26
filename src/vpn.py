@@ -17,8 +17,11 @@ class Vpn:
         config_file_path: str | Path | None = None,
         configs_folder: str | Path | None = None,
     ):
+        self._disabled = False
         if not config_file_path and not configs_folder:
-            raise ValueError("config_file_path or configs_folder must be provided")
+            self._disabled = True
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
 
         self.config_file_path = config_file_path
         self.configs_folder = configs_folder
@@ -31,6 +34,10 @@ class Vpn:
             self.config_file_path = self.config_file_paths[self.rotate_index]
 
     def connect(self):
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
+
         tries = 0
         while tries < 3:
             self.vpn_process = connect_to_vpn(self.config_file_path)
@@ -42,8 +49,9 @@ class Vpn:
             time.sleep(5)
 
     def rotate(self):
-        if not self.configs_folder:
-            raise ValueError("configs_folder must be provided to rotate VPN configurations")
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
 
         self.rotate_index = (self.rotate_index + 1) % len(self.config_file_paths)
         self.config_file_path = self.config_file_paths[self.rotate_index]
@@ -74,6 +82,10 @@ class Vpn:
         return get_public_ip()
 
     def kill(self):
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
+
         kill_vpn()
 
 
@@ -105,6 +117,9 @@ def connect_to_vpn(config_file_path):
 
         while True:
             # Check if process has output a line
+            if not vpn_process.stdout:
+                break
+
             output = vpn_process.stdout.readline()
             if output:
                 print(output.strip())  # Optionally print the output for debugging
