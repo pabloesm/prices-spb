@@ -1,8 +1,5 @@
-from playwright._impl._errors import Error as pw_Error
 from playwright.sync_api._generated import ElementHandle, Locator
 from pydantic import BaseModel, Field
-from pydantic.functional_validators import AfterValidator
-from typing_extensions import Annotated
 
 from src.config.logger import logger
 from src.models import ScannedProduct

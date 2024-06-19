@@ -83,7 +83,7 @@ def compute(products_state: ProductsState) -> ProductsState:
             # Add/sync subcategories
             pending_cats = products_state.get_pending_categories()
             pending_cats[0].click()
-            too_much = check_too_much_requests(page)
+            _ = check_too_much_requests(page)
             page.wait_for_load_state("load")
 
             subcategories = page.locator("css=li.open").locator("li").all()
@@ -92,7 +92,7 @@ def compute(products_state: ProductsState) -> ProductsState:
 
             # Add/sync products
             pending_subcats[0].click()
-            too_much = check_too_much_requests(page)
+            _ = check_too_much_requests(page)
             page.wait_for_load_state("load")
             page.wait_for_url("**/categories/**")
             buttons_products = get_products_locators(page)
@@ -105,7 +105,7 @@ def compute(products_state: ProductsState) -> ProductsState:
             while pending_products:
                 logger.debug("Iter to the next product")
                 pending_products[0].click()
-                too_much = check_too_much_requests(page)
+                _ = check_too_much_requests(page)
                 page.wait_for_load_state("load")
                 page.wait_for_url("**/product/**")
                 product_id = utils.extract_product_id_from_url(page.url)
@@ -143,7 +143,7 @@ def compute(products_state: ProductsState) -> ProductsState:
                     # corresponding subcategories)
                     logger.debug("Load next category")
                     pending_cats[0].click()
-                    too_much = check_too_much_requests(page)
+                    _ = check_too_much_requests(page)
                     page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     subcategories = page.locator("css=li.open").locator("li").all()
@@ -155,7 +155,7 @@ def compute(products_state: ProductsState) -> ProductsState:
                     # corresponding products)
                     logger.debug("Load next subcategory")
                     pending_subcats[0].click()
-                    too_much = check_too_much_requests(page)
+                    _ = check_too_much_requests(page)
                     page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     page.wait_for_url("**/categories/**")
@@ -223,7 +223,7 @@ def get_products_locators(page) -> list[Locator]:
     while not buttons_products and tries < 3:
         tries += 1
         page.screenshot(path="screenshot_32_before_wait.png")
-        too_much = check_too_much_requests(page)
+        _ = check_too_much_requests(page)
         logger.debug("Waiting for `%s`", selector)
         page.wait_for_timeout(1000)
         page.screenshot(path="screenshot_33_after_wait.png")
