@@ -33,9 +33,7 @@ def get_scanned_products() -> list[ScannedProduct]:
         logger.error("Reached maximum number of tries")
         raise ValueError("Reached maximum number of tries when trying to get product IDs")
 
-    breakpoint()
-    return 0
-    # return scan_state.scanned_products
+    return scan_state.scanned_products
 
 
 def main():

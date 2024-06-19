@@ -33,7 +33,11 @@ class ScanState(BaseModel):
 
 
 def compute(products_state: ProductsState) -> ProductsState:
-    """Scrapes the website to get basic information the products (ID, category, subcategory)."""
+    """Scrapes the website to get basic information the products (ID, category, subcategory).
+
+    Main steps:
+    -
+    """
 
     cookies = [
         SetCookieParam(
@@ -69,7 +73,6 @@ def compute(products_state: ProductsState) -> ProductsState:
             page.wait_for_load_state("networkidle")
 
             logger.debug("Fresh start")
-            # products_state.get_scanned_products()  # TODO: Remove this line
             # Add/sync categories
             categories_ = page.locator("css=span.category-menu__header").all()
             products_state.add_categories(categories_)
@@ -98,8 +101,6 @@ def compute(products_state: ProductsState) -> ProductsState:
             pending_products = products_state.get_pending_products(
                 pending_cats[0], pending_subcats[0]
             )
-            # logger.debug("--- DEBUG --- (1) Pending products: %s", len(pending_products))
-            # products_state.get_scanned_products()  # TODO: Remove this line
 
             while pending_products:
                 logger.debug("Iter to the next product")
@@ -131,7 +132,6 @@ def compute(products_state: ProductsState) -> ProductsState:
                     pending_subcats = products_state.get_pending_subcategories(pending_cats[0])
                 else:
                     # No more categories to scan
-                    breakpoint()
                     break
                 if pending_subcats:
                     pending_products = products_state.get_pending_products(
@@ -167,8 +167,6 @@ def compute(products_state: ProductsState) -> ProductsState:
                         pending_cats[0], pending_subcats[0]
                     )
 
-                # logger.debug("--- DEBUG --- (2) Pending products: %s", len(buttons_products))
-
     except pw_TimeoutError:
         time.sleep(SLEEP_TIME_SECONDS)
         logger.exception("TimeoutError")
@@ -187,7 +185,6 @@ def compute(products_state: ProductsState) -> ProductsState:
         logger.exception("An unexpected error occurred: %s", exc)
         raise exc
 
-    # current_state.is_finished = True
     products_state.is_finished = True
     return products_state
 
@@ -226,6 +223,7 @@ def get_products_locators(page) -> list[Locator]:
     while not buttons_products and tries < 3:
         tries += 1
         page.screenshot(path="screenshot_32_before_wait.png")
+        too_much = check_too_much_requests(page)
         logger.debug("Waiting for `%s`", selector)
         page.wait_for_timeout(1000)
         page.screenshot(path="screenshot_33_after_wait.png")
@@ -233,6 +231,10 @@ def get_products_locators(page) -> list[Locator]:
 
     if not buttons_products:
         raise exceptions.ScraperException("No products found")
+
+    if not isinstance(buttons_products, list):
+        raise TypeError(f"Unexpected type: {type(buttons_products)}")
+
     return buttons_products
 
 
