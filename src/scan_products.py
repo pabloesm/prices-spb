@@ -32,7 +32,7 @@ def get_scanned_products() -> list[ScannedProduct]:
         logger.error("Reached maximum number of tries")
         raise ValueError("Reached maximum number of tries when trying to get product IDs")
 
-    return scan_state.scanned_products
+    return products_state.get_scanned_products()
 
 
 def main():
