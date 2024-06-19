@@ -11,7 +11,6 @@ from src.vpn import Vpn
 N_TRIES = 120
 
 FOLDER_PATH: Path | None = Path("vpn_configs")
-FOLDER_PATH = None
 
 
 def get_scanned_products() -> list[ScannedProduct]:
