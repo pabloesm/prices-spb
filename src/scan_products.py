@@ -8,7 +8,7 @@ from src.scraper import get_product_basic
 from src.scraper.get_product_basic import ProductsState
 from src.vpn import Vpn
 
-N_TRIES = 120
+N_TRIES = 250
 
 FOLDER_PATH: Path | None = Path("vpn_configs")
 
