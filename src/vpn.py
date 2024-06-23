@@ -17,8 +17,11 @@ class Vpn:
         config_file_path: str | Path | None = None,
         configs_folder: str | Path | None = None,
     ):
+        self._disabled = False
         if not config_file_path and not configs_folder:
-            raise ValueError("config_file_path or configs_folder must be provided")
+            self._disabled = True
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
 
         self.config_file_path = config_file_path
         self.configs_folder = configs_folder
@@ -31,6 +34,10 @@ class Vpn:
             self.config_file_path = self.config_file_paths[self.rotate_index]
 
     def connect(self):
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
+
         tries = 0
         while tries < 3:
             self.vpn_process = connect_to_vpn(self.config_file_path)
@@ -42,8 +49,9 @@ class Vpn:
             time.sleep(5)
 
     def rotate(self):
-        if not self.configs_folder:
-            raise ValueError("configs_folder must be provided to rotate VPN configurations")
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
 
         self.rotate_index = (self.rotate_index + 1) % len(self.config_file_paths)
         self.config_file_path = self.config_file_paths[self.rotate_index]
@@ -74,6 +82,10 @@ class Vpn:
         return get_public_ip()
 
     def kill(self):
+        if self._disabled:
+            logger.warning("VPN connection is disabled. No configuration provided.")
+            return
+
         kill_vpn()
 
 
@@ -93,21 +105,78 @@ def connect_to_vpn(config_file_path):
         credentials_file = Path("credentials.txt")
         credentials_file.write_text(f"{username}\n{password}", encoding="utf-8")
 
-        # Execute the command in background using Popen
-        vpn_process = subprocess.Popen(command)
+        # Execute the command in background using Popen and redirect output for monitoring
+        vpn_process = subprocess.Popen(
+            command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+        )
 
-        # Wait for the process to stablish the connection
-        time.sleep(5)
+        # Monitor the process output to detect successful connection
+        start_time = time.time()
+        timeout = 30  # Set a timeout for connection attempt
+        connected = False
 
-        return vpn_process
+        while True:
+            # Check if process has output a line
+            if not vpn_process.stdout:
+                break
 
-    except subprocess.CalledProcessError as e:
+            output = vpn_process.stdout.readline()
+            if output:
+                print(output.strip())  # Optionally print the output for debugging
+
+                if "Initialization Sequence Completed" in output:
+                    connected = True
+                    break
+
+            if vpn_process.poll() is not None:
+                raise subprocess.CalledProcessError(vpn_process.returncode, command)
+
+            if time.time() - start_time > timeout:
+                raise TimeoutError("Timed out waiting for VPN connection")
+
+        return vpn_process if connected else None
+
+    except (subprocess.CalledProcessError, TimeoutError, ValueError) as e:
         print(f"Error: {e}")
         return None
+
     finally:
         # Remove the temporary credentials file
         if credentials_file.exists():
             credentials_file.unlink()
+
+
+# def connect_to_vpn_DEPRECATED(config_file_path):
+#     try:
+#         # Get username and password from environment variables
+#         username = os.environ.get("VPN_USERNAME")
+#         password = os.environ.get("VPN_PASSWORD")
+
+#         if not username or not password:
+#             raise ValueError("VPN_USERNAME or VPN_PASSWORD environment variables not set")
+
+#         # Command to start OpenVPN with the provided configuration file and authentication
+#         command = ["openvpn", "--config", config_file_path, "--auth-user-pass", "credentials.txt"]
+
+#         # Create a temporary credentials file with username and password
+#         credentials_file = Path("credentials.txt")
+#         credentials_file.write_text(f"{username}\n{password}", encoding="utf-8")
+
+#         # Execute the command in background using Popen
+#         vpn_process = subprocess.Popen(command)
+
+#         # Wait for the process to stablish the connection
+#         time.sleep(5)
+
+#         return vpn_process
+
+#     except subprocess.CalledProcessError as e:
+#         print(f"Error: {e}")
+#         return None
+#     finally:
+#         # Remove the temporary credentials file
+#         if credentials_file.exists():
+#             credentials_file.unlink()
 
 
 def get_public_ip():
