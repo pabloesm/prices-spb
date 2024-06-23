@@ -60,7 +60,7 @@ class ProductsState:
     """
 
     def __init__(self):
-        self.products = []
+        self.products: list[ProductState] = []
         self._is_finished = False
 
     @property
