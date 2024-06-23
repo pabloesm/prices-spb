@@ -106,6 +106,12 @@ async def main():
                 storings_batch = storings_pending[i : i + batch_size]
 
                 await store_product_details(storings_batch)
+                n_pending = len(storing_states.get_pending())
+                n_failed = len(storing_states.get_failed())
+                n_success = len(storing_states.get_success())
+                logger.info(
+                    "Pending: %s -- Failed: %s -- Success: %s", n_pending, n_failed, n_success
+                )
                 time.sleep(10)
     finally:
         vpn.kill()
