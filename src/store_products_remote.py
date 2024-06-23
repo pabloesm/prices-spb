@@ -24,7 +24,6 @@ from src.scraper.info_parser import InfoParser
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
 VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
-VPN_CFG_FOLDER_PATH = None
 
 API_URL_TEMPLATE = str(os.environ.get("API_URL_TEMPLATE"))
 if not os.environ.get("API_URL_TEMPLATE"):
