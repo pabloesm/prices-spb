@@ -198,10 +198,10 @@ def kill_vpn():
     time.sleep(1)
 
 
-def get_ovpn_files(VPN_CFG_FOLDER_PATH: str | Path) -> list[Path]:
-    VPN_CFG_FOLDER_PATH = Path(VPN_CFG_FOLDER_PATH)
+def get_ovpn_files(folder_path: str | Path) -> list[Path]:
+    folder_path = Path(folder_path)
     # Use glob to get all files with the .ovpn extension
-    ovpn_files = VPN_CFG_FOLDER_PATH.glob("*.ovpn")
+    ovpn_files = folder_path.glob("*.ovpn")
     return list(ovpn_files)
 
 

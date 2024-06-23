@@ -164,27 +164,6 @@ async def store_product_details(products_state: list[StoringState]):
         return posts_responses
 
 
-async def store_product_details_OLD(products_ids: list[float]):
-    async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver()), timeout=5.0) as session:
-        tasks_get = []
-        for product_id in products_ids:
-            task = asyncio.create_task(make_request_get(session, product_id))
-            tasks_get.append(task)
-            await asyncio.sleep(0.1)  # To avoid sending requests too quickly
-        products_details = await asyncio.gather(*tasks_get, return_exceptions=True)
-
-        tasks_post = []
-        for product_details in products_details:
-            if not isinstance(product_details, dict):
-                continue
-            task = asyncio.create_task(make_request_post(session, product_details))
-            tasks_post.append(task)
-
-        posts_responses = await asyncio.gather(*tasks_post, return_exceptions=True)
-        logger.info("Posts responses: %s", posts_responses)
-        return posts_responses
-
-
 def warm_up_endpoint():
     for _ in range(3):
         if not CF_URL:
