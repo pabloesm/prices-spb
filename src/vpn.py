@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from threading import Thread
 
 import httpx
 from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
@@ -16,6 +17,7 @@ class Vpn:
         self,
         config_file_path: str | Path | None = None,
         configs_folder: str | Path | None = None,
+        check_interval: int = 60,
     ):
         self._disabled = False
         if not config_file_path and not configs_folder:
@@ -32,6 +34,9 @@ class Vpn:
         if self.configs_folder:
             self.config_file_paths = get_ovpn_files(self.configs_folder)
             self.config_file_path = self.config_file_paths[self.rotate_index]
+
+        self.check_interval = check_interval
+        self.start_periodic_check()
 
     def connect(self):
         if self._disabled:
@@ -87,6 +92,30 @@ class Vpn:
             return
 
         kill_vpn()
+
+    def check_internet_connection(self):
+        """Check if the internet connection is active."""
+        try:
+            with httpx.Client() as client:
+                response = client.get("https://www.google.com", timeout=5)
+                logger.warning("Internet connection confirmed.")
+                return response.status_code == 200
+        except httpx.RequestError:
+            return False
+
+    def periodic_check(self):
+        """Periodically check the internet connection and rotate VPN if disconnected."""
+        while True:
+            if not self.check_internet_connection():
+                logger.warning("Internet connection lost. Rotating VPN.")
+                self.rotate()
+            time.sleep(self.check_interval)
+
+    def start_periodic_check(self):
+        """Start the periodic internet connection check in a separate thread."""
+        if not self._disabled:
+            thread = Thread(target=self.periodic_check, daemon=True)
+            thread.start()
 
 
 def connect_to_vpn(config_file_path):
