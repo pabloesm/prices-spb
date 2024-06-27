@@ -146,39 +146,6 @@ def connect_to_vpn(config_file_path):
             credentials_file.unlink()
 
 
-# def connect_to_vpn_DEPRECATED(config_file_path):
-#     try:
-#         # Get username and password from environment variables
-#         username = os.environ.get("VPN_USERNAME")
-#         password = os.environ.get("VPN_PASSWORD")
-
-#         if not username or not password:
-#             raise ValueError("VPN_USERNAME or VPN_PASSWORD environment variables not set")
-
-#         # Command to start OpenVPN with the provided configuration file and authentication
-#         command = ["openvpn", "--config", config_file_path, "--auth-user-pass", "credentials.txt"]
-
-#         # Create a temporary credentials file with username and password
-#         credentials_file = Path("credentials.txt")
-#         credentials_file.write_text(f"{username}\n{password}", encoding="utf-8")
-
-#         # Execute the command in background using Popen
-#         vpn_process = subprocess.Popen(command)
-
-#         # Wait for the process to stablish the connection
-#         time.sleep(5)
-
-#         return vpn_process
-
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: {e}")
-#         return None
-#     finally:
-#         # Remove the temporary credentials file
-#         if credentials_file.exists():
-#             credentials_file.unlink()
-
-
 def get_public_ip():
     try:
         with httpx.Client() as client:
