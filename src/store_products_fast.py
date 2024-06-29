@@ -9,7 +9,7 @@ from src.config.logger import logger
 from src.store_products import store_product
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
-FOLDER_PATH = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH = Path("vpn_configs")
 API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE")
 if not API_URL_TEMPLATE:
     raise ValueError("API_URL_TEMPLATE environment variable must be provided")
@@ -37,7 +37,7 @@ async def get_product_details(products_ids: list[float]):
 
 
 async def main():
-    vpn = Vpn(configs_folder=FOLDER_PATH)
+    vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
     try:
         stored_products_ids = db.get_all_scanned_product_ids()
         # For each 100 products IDS

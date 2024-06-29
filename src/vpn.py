@@ -2,6 +2,7 @@ import os
 import subprocess
 import time
 from pathlib import Path
+from threading import Thread
 
 import httpx
 from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
@@ -16,6 +17,7 @@ class Vpn:
         self,
         config_file_path: str | Path | None = None,
         configs_folder: str | Path | None = None,
+        check_interval: int = 60,
     ):
         self._disabled = False
         if not config_file_path and not configs_folder:
@@ -32,6 +34,9 @@ class Vpn:
         if self.configs_folder:
             self.config_file_paths = get_ovpn_files(self.configs_folder)
             self.config_file_path = self.config_file_paths[self.rotate_index]
+
+        self.check_interval = check_interval
+        self.start_periodic_check()
 
     def connect(self):
         if self._disabled:
@@ -87,6 +92,30 @@ class Vpn:
             return
 
         kill_vpn()
+
+    def check_internet_connection(self):
+        """Check if the internet connection is active."""
+        try:
+            with httpx.Client() as client:
+                response = client.get("https://www.google.com", timeout=5)
+                logger.warning("Internet connection confirmed.")
+                return response.status_code == 200
+        except httpx.RequestError:
+            return False
+
+    def periodic_check(self):
+        """Periodically check the internet connection and rotate VPN if disconnected."""
+        while True:
+            if not self.check_internet_connection():
+                logger.warning("Internet connection lost. Rotating VPN.")
+                self.rotate()
+            time.sleep(self.check_interval)
+
+    def start_periodic_check(self):
+        """Start the periodic internet connection check in a separate thread."""
+        if not self._disabled:
+            thread = Thread(target=self.periodic_check, daemon=True)
+            thread.start()
 
 
 def connect_to_vpn(config_file_path):
@@ -144,39 +173,6 @@ def connect_to_vpn(config_file_path):
         # Remove the temporary credentials file
         if credentials_file.exists():
             credentials_file.unlink()
-
-
-# def connect_to_vpn_DEPRECATED(config_file_path):
-#     try:
-#         # Get username and password from environment variables
-#         username = os.environ.get("VPN_USERNAME")
-#         password = os.environ.get("VPN_PASSWORD")
-
-#         if not username or not password:
-#             raise ValueError("VPN_USERNAME or VPN_PASSWORD environment variables not set")
-
-#         # Command to start OpenVPN with the provided configuration file and authentication
-#         command = ["openvpn", "--config", config_file_path, "--auth-user-pass", "credentials.txt"]
-
-#         # Create a temporary credentials file with username and password
-#         credentials_file = Path("credentials.txt")
-#         credentials_file.write_text(f"{username}\n{password}", encoding="utf-8")
-
-#         # Execute the command in background using Popen
-#         vpn_process = subprocess.Popen(command)
-
-#         # Wait for the process to stablish the connection
-#         time.sleep(5)
-
-#         return vpn_process
-
-#     except subprocess.CalledProcessError as e:
-#         print(f"Error: {e}")
-#         return None
-#     finally:
-#         # Remove the temporary credentials file
-#         if credentials_file.exists():
-#             credentials_file.unlink()
 
 
 def get_public_ip():

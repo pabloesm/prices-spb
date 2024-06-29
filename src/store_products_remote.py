@@ -1,10 +1,12 @@
 import asyncio
 import os
 import time
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
 import httpx
+from pydantic import BaseModel
 
 from src import db
 from src.config.logger import logger
@@ -21,7 +23,8 @@ from src.models import (
 from src.scraper.info_parser import InfoParser
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
-FOLDER_PATH = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
+
 API_URL_TEMPLATE = str(os.environ.get("API_URL_TEMPLATE"))
 if not os.environ.get("API_URL_TEMPLATE"):
     raise ValueError("API_URL_TEMPLATE environment variable must be provided")
@@ -29,6 +32,89 @@ if not os.environ.get("API_URL_TEMPLATE"):
 CF_URL = os.environ.get("CF_URL")
 if not CF_URL:
     raise ValueError("CF_URL environment variable must be provided")
+
+
+class ProductStoringStatus(Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+class StoringState(BaseModel):
+    product_id: float
+    status: ProductStoringStatus = ProductStoringStatus.PENDING
+    n_tries: int = 0
+
+
+class StoringStates:
+    def __init__(self, storing_initial_state: list[StoringState]) -> None:
+        self.storing_states: list[StoringState] = storing_initial_state
+        self._is_finished = False
+
+    @property
+    def is_finished(self) -> bool:
+        return bool(self._is_finished)
+
+    @is_finished.setter
+    def is_finished(self, value: bool) -> None:
+        self._is_finished = value
+
+    def get_pending(self) -> list[StoringState]:
+        # Set failed states if necessary
+        for state in self.storing_states:
+            if state.n_tries >= 3:
+                state.status = ProductStoringStatus.FAILED
+                logger.warning("Product %s failed to store after 3 tries", state.product_id)
+
+        return [
+            state for state in self.storing_states if state.status == ProductStoringStatus.PENDING
+        ]
+
+    def get_failed(self) -> list[StoringState]:
+        return [
+            state for state in self.storing_states if state.status == ProductStoringStatus.FAILED
+        ]
+
+    def get_success(self) -> list[StoringState]:
+        return [
+            state for state in self.storing_states if state.status == ProductStoringStatus.SUCCESS
+        ]
+
+
+async def main():
+    vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
+    try:
+        warm_up_endpoint()
+        stored_products_ids = db.get_all_scanned_product_ids()
+        store_product_states = [
+            StoringState(product_id=product_id) for product_id in stored_products_ids
+        ]
+
+        # Notice that states are mutated during the storing process
+        storing_states = StoringStates(store_product_states)
+
+        # For each `batch_size` products IDS
+        batch_size = 35
+        while storing_states.get_pending():
+            for i in range(0, len(storing_states.get_pending()), batch_size):
+                vpn.rotate()
+
+                # ids_batch = stored_products_ids[i : i + batch_size]
+                # await store_product_details_OLD(ids_batch)
+
+                storings_pending = storing_states.get_pending()
+                storings_batch = storings_pending[i : i + batch_size]
+
+                await store_product_details(storings_batch)
+                n_pending = len(storing_states.get_pending())
+                n_failed = len(storing_states.get_failed())
+                n_success = len(storing_states.get_success())
+                logger.info(
+                    "Pending: %s -- Failed: %s -- Success: %s", n_pending, n_failed, n_success
+                )
+                time.sleep(10)
+    finally:
+        vpn.kill()
 
 
 async def make_request_get(session, product_id: float) -> Any:
@@ -46,11 +132,11 @@ async def make_request_post(session, product_details: dict) -> Any:
     return response.json()
 
 
-async def store_product_details(products_ids: list[float]):
+async def store_product_details(products_state: list[StoringState]):
     async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver()), timeout=5.0) as session:
         tasks_get = []
-        for product_id in products_ids:
-            task = asyncio.create_task(make_request_get(session, product_id))
+        for product_state in products_state:
+            task = asyncio.create_task(make_request_get(session, product_state.product_id))
             tasks_get.append(task)
             await asyncio.sleep(0.1)  # To avoid sending requests too quickly
         products_details = await asyncio.gather(*tasks_get, return_exceptions=True)
@@ -63,31 +149,33 @@ async def store_product_details(products_ids: list[float]):
             tasks_post.append(task)
 
         posts_responses = await asyncio.gather(*tasks_post, return_exceptions=True)
-        logger.info("Posts responses: %s", posts_responses)
+        success_ids = []
+        for pr in posts_responses:
+            try:
+                if not isinstance(pr, dict):
+                    continue
+                success_ids.append(pr["productId"])
+            except Exception:
+                pass
+
+        for product_state in products_state:
+            if product_state.product_id in success_ids:
+                product_state.status = ProductStoringStatus.SUCCESS
+            else:
+                product_state.n_tries += 1
+
+        logger.debug("Posts responses: %s", posts_responses)
+        logger.info("Tried: %s -- Stored: %s", len(products_state), len(success_ids))
         return posts_responses
 
 
 def warm_up_endpoint():
     for _ in range(3):
+        if not CF_URL:
+            raise ValueError("CF_URL environment variable must be provided")
         response = httpx.get(CF_URL)
         logger.info("Warm up response: %s", response.json())
         time.sleep(1)
-
-
-async def main():
-    vpn = Vpn(configs_folder=FOLDER_PATH)
-    try:
-        warm_up_endpoint()
-        stored_products_ids = db.get_all_scanned_product_ids()
-        # For each `batch_size` products IDS
-        batch_size = 35
-        for i in range(0, len(stored_products_ids), batch_size):
-            vpn.rotate()
-            ids_batch = stored_products_ids[i : i + batch_size]
-            await store_product_details(ids_batch)
-            time.sleep(10)
-    finally:
-        vpn.kill()
 
 
 def parse_product_data(item: dict) -> dict:

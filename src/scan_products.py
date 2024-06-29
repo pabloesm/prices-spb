@@ -10,13 +10,13 @@ from src.vpn import Vpn
 
 N_TRIES = 250
 
-FOLDER_PATH: Path | None = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
 
 
 def get_scanned_products() -> list[ScannedProduct]:
     products_state = ProductsState()
     tries = 0
-    vpn = Vpn(configs_folder=FOLDER_PATH)
+    vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
     try:
         while tries < N_TRIES:
             logger.debug("Try number: %s", tries)
