@@ -575,6 +575,29 @@ def get_all_scanned_product_ids() -> list[float]:
         connection_pool.putconn(conn)
 
 
+def get_scanned_non_stored_product_ids() -> list[float]:
+    conn = get_valid_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            """
+            SELECT product_id
+            FROM scanned_products
+            WHERE product_id NOT IN (
+                SELECT id
+                FROM product
+            )
+            """
+        )
+        product_ids = [float(row[0]) for row in cursor.fetchall()]
+        return product_ids
+
+    finally:
+        cursor.close()
+        connection_pool.putconn(conn)
+
+
 def count_scanned_products() -> int:
     conn = get_valid_connection()
     cursor = conn.cursor()

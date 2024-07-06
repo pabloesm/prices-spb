@@ -24,6 +24,8 @@ from src.scraper.info_parser import InfoParser
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
 VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
+# TODO: DELETE THIS
+VPN_CFG_FOLDER_PATH = None
 
 API_URL_TEMPLATE = str(os.environ.get("API_URL_TEMPLATE"))
 if not os.environ.get("API_URL_TEMPLATE"):
@@ -86,6 +88,8 @@ async def main():
     try:
         warm_up_endpoint()
         stored_products_ids = db.get_all_scanned_product_ids()
+        # stored_products_ids = db.get_scanned_non_stored_product_ids()
+
         store_product_states = [
             StoringState(product_id=product_id) for product_id in stored_products_ids
         ]
