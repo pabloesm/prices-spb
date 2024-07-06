@@ -129,7 +129,7 @@ class InfoParser:
 
 def sntz(s: str | None) -> str | None:
     """Sanitize numeric string."""
-    if s is None:
+    if s is None or s == "":
         return None
 
     s = s.strip()
