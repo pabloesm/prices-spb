@@ -98,7 +98,7 @@ class Vpn:
         try:
             with httpx.Client() as client:
                 response = client.get("https://www.google.com", timeout=5)
-                logger.warning("Internet connection confirmed.")
+                logger.debug("Internet connection confirmed.")
                 return response.status_code == 200
         except httpx.RequestError:
             return False
