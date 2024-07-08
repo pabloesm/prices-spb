@@ -13,7 +13,7 @@ N_TRIES = 250
 VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
 
 
-def get_scanned_products() -> list[ScannedProduct]:
+def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct]:
     products_state = ProductsState()
     tries = 0
     vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
@@ -21,7 +21,7 @@ def get_scanned_products() -> list[ScannedProduct]:
         while tries < N_TRIES:
             logger.debug("Try number: %s", tries)
             vpn.rotate()
-            products_state = get_product_basic.compute(products_state)
+            products_state = get_product_basic.compute(products_state, partial_scan)
             tries += 1
             if products_state.is_finished:
                 break
@@ -35,8 +35,8 @@ def get_scanned_products() -> list[ScannedProduct]:
     return products_state.get_scanned_products()
 
 
-def main():
-    products = get_scanned_products()
+def main(partial_scan: str | None = None):
+    products = get_scanned_products(partial_scan=partial_scan)
     with open("scanned_prodcts.pkl", "wb") as f:
         pickle.dump(products, f)
 

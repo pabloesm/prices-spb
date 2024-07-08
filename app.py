@@ -1,5 +1,5 @@
+import argparse
 import asyncio
-import sys
 
 from src import scan_products, store_products_remote
 from src.config.environment_vars import EnvironmentVars
@@ -9,15 +9,35 @@ logger = setup_logger(EnvironmentVars().get_logging_level())
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: python app.py <option>")
-        return
+    parser = argparse.ArgumentParser(description="Scan and store products.")
 
-    option = sys.argv[1]
+    # Define the arguments
+    parser.add_argument(
+        "--operation",
+        "-op",
+        type=str,
+        choices=["scan", "store"],
+        required=True,
+        help="Operation to perform: scan or store",
+    )
+    parser.add_argument(
+        "--partial_scan",
+        "-ps",
+        type=str,
+        choices=["first_half", "second_half"],
+        required=False,
+        help="Scan only the a part of the products",
+    )
 
-    if option == "scan":
-        scan_products.main()
-    elif option == "store":
+    # Parse the arguments
+    args = parser.parse_args()
+
+    operation = args.operation
+    partial_scan = args.partial_scan
+
+    if operation == "scan":
+        scan_products.main(partial_scan)
+    elif operation == "store":
         asyncio.run(store_products_remote.main())
     else:
         print("Invalid option. Please use 'scan' or 'store'.")

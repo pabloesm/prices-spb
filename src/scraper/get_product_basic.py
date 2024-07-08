@@ -32,7 +32,7 @@ class ScanState(BaseModel):
     done_products: list[str] = []
 
 
-def compute(products_state: ProductsState) -> ProductsState:
+def compute(products_state: ProductsState, partial_scan: str | None = None) -> ProductsState:
     """Scrapes the website to get basic information the products (ID, category, subcategory).
 
     Main steps:
@@ -74,7 +74,8 @@ def compute(products_state: ProductsState) -> ProductsState:
 
             logger.debug("Fresh start")
             # Add/sync categories
-            categories_ = page.locator("css=span.category-menu__header").all()
+            categories_all = page.locator("css=span.category-menu__header").all()
+            categories_ = _sample_categories(categories_all, partial_scan)
             products_state.add_categories(categories_)
             logger.debug("Found %s categories", len(categories_))
             if len(categories_) == 0:
@@ -250,3 +251,18 @@ def check_too_much_requests(page) -> bool:
         return True
 
     return False
+
+
+def _sample_categories(
+    categories_all: list[Locator],
+    partial_scan: str | None = None,
+) -> list[Locator]:
+    if partial_scan is None:
+        return categories_all
+
+    if partial_scan == "first_half":
+        return categories_all[: len(categories_all) // 2]
+    if partial_scan == "second_half":
+        return categories_all[len(categories_all) // 2 :]
+
+    raise ValueError("Invalid value for `partial_scan`")
