@@ -19,7 +19,7 @@ if os.getenv("URL_SEED") is None:
     raise ValueError("URL_SEED environment variable not set.")
 
 SLEEP_TIME_SECONDS = 1
-PW_TIMEOUT_MS = 5000
+PW_TIMEOUT_MS = 15000
 
 
 class ScanState(BaseModel):
