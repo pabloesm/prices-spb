@@ -38,6 +38,7 @@ jobs:
         run: |
           sudo python -m pylint src/
       - name: Run
+        uses: nick-fields/retry@v3
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
           URL_SEED: ${{ secrets.URL_SEED }}
@@ -45,8 +46,11 @@ jobs:
           VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
-        run: |
-          sudo -E python app.py --operation store
+        with:
+          timeout_minutes: 360
+          max_attempts: 3
+          retry_on: error
+          command: sudo -E python app.py --operation store
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
