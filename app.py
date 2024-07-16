@@ -21,24 +21,24 @@ def main():
         help="Operation to perform: scan or store",
     )
     parser.add_argument(
-        "--partial_scan",
-        "-ps",
+        "--partial",
+        "-p",
         type=str,
         choices=["first_half", "second_half"],
         required=False,
-        help="Scan only the a part of the products",
+        help="Scan/store only a part of the products",
     )
 
     # Parse the arguments
     args = parser.parse_args()
 
     operation = args.operation
-    partial_scan = args.partial_scan
+    partial = args.partial
 
     if operation == "scan":
-        scan_products.main(partial_scan)
+        scan_products.main(partial)
     elif operation == "store":
-        asyncio.run(store_products_remote.main())
+        asyncio.run(store_products_remote.main(partial))
     else:
         print("Invalid option. Please use 'scan' or 'store'.")
 

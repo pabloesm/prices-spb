@@ -24,6 +24,7 @@ from src.scraper.info_parser import InfoParser
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
 VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH = None
 
 API_URL_TEMPLATE = str(os.environ.get("API_URL_TEMPLATE"))
 if not os.environ.get("API_URL_TEMPLATE"):
@@ -81,7 +82,7 @@ class StoringStates:
         ]
 
 
-async def main():
+async def main(partial_store: str | None = None):
     vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
     try:
         warm_up_endpoint()
@@ -92,6 +93,8 @@ async def main():
             StoringState(product_id=product_id) for product_id in stored_products_ids
         ]
 
+        store_product_states = _sample_storing_states(store_product_states, partial_store)
+
         # Notice that states are mutated during the storing process
         storing_states = StoringStates(store_product_states)
 
@@ -100,9 +103,6 @@ async def main():
         while storing_states.get_pending():
             for i in range(0, len(storing_states.get_pending()), batch_size):
                 vpn.rotate()
-
-                # ids_batch = stored_products_ids[i : i + batch_size]
-                # await store_product_details_OLD(ids_batch)
 
                 storings_pending = storing_states.get_pending()
                 storings_batch = storings_pending[i : i + batch_size]
@@ -230,3 +230,18 @@ def transform_id(product_id: float) -> str:
         id_str = id_str.rstrip("0").rstrip(".")
 
     return id_str
+
+
+def _sample_storing_states(
+    storing_states: list[StoringState],
+    partial_store: str | None = None,
+) -> list[StoringState]:
+    if partial_store is None:
+        return storing_states
+
+    if partial_store == "first_half":
+        return storing_states[: len(storing_states) // 2]
+    if partial_store == "second_half":
+        return storing_states[len(storing_states) // 2 :]
+
+    raise ValueError("Invalid value for `partial_store`")
