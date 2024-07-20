@@ -2,7 +2,7 @@ name: Triggered Workflow
 
 on:
   repository_dispatch:
-    types: [zapier-trigger]
+    types: [trigger]
 
 jobs:
   example-job:
