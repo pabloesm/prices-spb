@@ -1,4 +1,4 @@
-name: Scan products (get IDs) first half
+name: Scan products fail test
 
 env:
   PYTHONUNBUFFERED: "1"
