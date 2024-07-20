@@ -1,8 +1,12 @@
 name: Triggered Workflow
 
 on:
-  repository_dispatch:
-    types: [trigger]
+  workflow_dispatch:
+    inputs:
+      trigger_message:
+        description: "Message from the API"
+        required: true
+        default: "No message provided"
 
 jobs:
   example-job:
