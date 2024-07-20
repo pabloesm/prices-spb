@@ -49,12 +49,12 @@ jobs:
           retry_on: error
           command: sudo -E python app.py --operation scan --partial FAIL
       - name: Handle failure
-        if: failure() && steps.run_step.outcome == 'failure'
+        if: failure()
         env:
           URL_WEBHOOK_MAKE: ${{ secrets.URL_WEBHOOK_MAKE }}
         run: |
           echo "Run step failed. Handling failure..."
-          # Add commands to handle the failure, for example:
+          # Launch the scan_failover workflow (delayed)
           curl $URL_WEBHOOK_MAKE
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
