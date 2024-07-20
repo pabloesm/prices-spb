@@ -5,8 +5,6 @@ env:
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * *"
 
 permissions:
   contents: read
@@ -49,7 +47,13 @@ jobs:
           timeout_minutes: 360
           max_attempts: 3
           retry_on: error
-          command: sudo -E python app.py --operation scan --partial first_half
+          command: sudo -E python app.py --operation scan --partial FAIL
+      - name: Handle failure
+        if: failure() && steps.run_step.outcome == 'failure'
+        run: |
+          echo "Run step failed. Handling failure..."
+          # Add commands to handle the failure, for example:
+          # sudo python app.py --operation handle_failure
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
