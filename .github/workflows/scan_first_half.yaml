@@ -47,7 +47,7 @@ jobs:
           CF_URL: ${{ vars.CF_URL }}
         with:
           timeout_minutes: 360
-          max_attempts: 3
+          max_attempts: 2
           retry_on: error
           command: sudo -E python app.py --operation scan --partial first_half
       - name: Upload artifacts

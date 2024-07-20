@@ -1,4 +1,7 @@
-name: Triggered Workflow
+name: Scan Failover
+
+env:
+  PYTHONUNBUFFERED: "1"
 
 on:
   workflow_dispatch:
@@ -8,11 +11,52 @@ on:
         required: true
         default: "No message provided"
 
+permissions:
+  contents: read
+
 jobs:
-  example-job:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Run a script
-        run: echo "The workflow was triggered by Zapier!"
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get --assume-yes --no-install-recommends install openvpn          
+          openvpn --version
+          sudo python -m pip install --upgrade pip
+          sudo pip install -r requirements/requirements.txt
+          sudo pip install -r requirements/requirements-dev.txt
+          playwright install chromium
+      - name: Mypy
+        run: |
+          sudo python -m mypy src/
+      - name: Pylint
+        run: |
+          sudo python -m pylint src/
+      - name: Run
+        uses: nick-fields/retry@v3
+        env:
+          DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
+          URL_SEED: ${{ secrets.URL_SEED }}
+          VPN_USERNAME: ${{ secrets.VPN_USERNAME }}
+          VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
+          API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
+          CF_URL: ${{ vars.CF_URL }}
+        with:
+          timeout_minutes: 360
+          max_attempts: 2
+          retry_on: error
+          command: sudo -E python app.py --operation scan --partial first_half
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: snapshots
+          path: |
+            ./scanned_prodcts.pkl
+            logger_msgs.log
