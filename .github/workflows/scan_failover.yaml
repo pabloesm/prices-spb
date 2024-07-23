@@ -52,7 +52,7 @@ jobs:
           timeout_minutes: 360
           max_attempts: 2
           retry_on: error
-          command: sudo -E python app.py --operation scan --partial first_half
+          command: sudo -E python app.py --operation scan --partial second_half
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

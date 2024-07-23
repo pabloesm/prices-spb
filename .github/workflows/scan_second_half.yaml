@@ -46,6 +46,14 @@ jobs:
           CF_URL: ${{ vars.CF_URL }}
         run: |
           sudo -E python app.py --operation scan --partial second_half
+      - name: Handle failure
+        if: failure()
+        env:
+          URL_WEBHOOK_MAKE: ${{ secrets.URL_WEBHOOK_MAKE }}
+        run: |
+          echo "Run step failed. Handling failure..."
+          # Launch the scan_failover workflow (delayed)
+          curl $URL_WEBHOOK_MAKE
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
