@@ -45,9 +45,9 @@ jobs:
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
         run: |
-          sudo -E python app.py --operation scan --partial second_half
+          sudo -E python app.py --operation scan --partial second_halfXXXX
       - name: Handle failure
-        if: failure()
+        if: ${{ failure() }}
         env:
           URL_WEBHOOK_MAKE: ${{ secrets.URL_WEBHOOK_MAKE }}
         run: |
