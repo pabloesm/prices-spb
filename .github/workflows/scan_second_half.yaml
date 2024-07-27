@@ -45,7 +45,7 @@ jobs:
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
         run: |
-          sudo -E python app.py --operation scan --partial second_halfXXXX
+          sudo -E python app.py --operation scan --partial second_half
       - name: Handle failure
         if: ${{ failure() }}
         env:
