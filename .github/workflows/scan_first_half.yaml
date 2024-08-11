@@ -50,6 +50,14 @@ jobs:
           max_attempts: 2
           retry_on: error
           command: sudo -E python app.py --operation scan --partial first_half
+      - name: Handle failure
+        if: ${{ failure() }}
+        env:
+          URL_WEBHOOK_MAKE: ${{ secrets.URL_WEBHOOK_MAKE }}
+        run: |
+          echo "Run step failed. Handling failure..."
+          # Launch the scan_failover workflow (delayed)
+          curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "first_half"}'
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
