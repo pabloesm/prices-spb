@@ -60,8 +60,7 @@ jobs:
           timeout_minutes: 360
           max_attempts: 2
           retry_on: error
-          # command: sudo -E python app.py --operation ${{ github.event.inputs.operation }} --partial ${{ github.event.inputs.operation }}
-          command: echo ${{ github.event.inputs.operation }} ${{ github.event.inputs.operation }}
+          command: sudo -E python app.py --operation ${{ github.event.inputs.operation }} --partial ${{ github.event.inputs.partial }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
