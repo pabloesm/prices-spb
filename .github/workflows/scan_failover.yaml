@@ -10,6 +10,14 @@ on:
         description: "Message from the API"
         required: true
         default: "No message provided"
+      operation:
+        description: "Operation to perform, possible values: scan, store"
+        required: true
+        default: "scan"
+      partial:
+        description: "Partial to perform the operation, possible values: first_half, second_half"
+        required: true
+        default: "first_half"
 
 permissions:
   contents: read
@@ -52,7 +60,8 @@ jobs:
           timeout_minutes: 360
           max_attempts: 2
           retry_on: error
-          command: sudo -E python app.py --operation scan --partial second_half
+          # command: sudo -E python app.py --operation ${{ github.event.inputs.operation }} --partial ${{ github.event.inputs.operation }}
+          command: echo ${{ github.event.inputs.operation }} ${{ github.event.inputs.operation }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
