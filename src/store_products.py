@@ -18,8 +18,8 @@ from src.models import (
 )
 from src.scraper.info_parser import InfoParser
 
-API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE")
-if not API_URL_TEMPLATE:
+API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE", "default_url")
+if not API_URL_TEMPLATE or API_URL_TEMPLATE == "default_url":
     raise ValueError("API_URL_TEMPLATE environment variable must be provided")
 
 

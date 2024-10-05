@@ -7,8 +7,8 @@ import httpx
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE")
-if not API_URL_TEMPLATE:
+API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE", "default")
+if not API_URL_TEMPLATE or API_URL_TEMPLATE == "default":
     raise ValueError("API_URL_TEMPLATE environment variable must be provided")
 
 API_URL = API_URL_TEMPLATE.format(id=80320)
