@@ -10,8 +10,8 @@ from src.store_products import store_product
 from src.vpn import AsyncCustomHost, NameSolver, Vpn
 
 VPN_CFG_FOLDER_PATH = Path("vpn_configs")
-API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE")
-if not API_URL_TEMPLATE:
+API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE", "empty_url")
+if not API_URL_TEMPLATE or API_URL_TEMPLATE == "empty_url":
     raise ValueError("API_URL_TEMPLATE environment variable must be provided")
 
 

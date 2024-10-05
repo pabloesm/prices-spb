@@ -87,7 +87,6 @@ async def main(partial_store: str | None = None):
     try:
         warm_up_endpoint()
         stored_products_ids = db.get_all_scanned_product_ids()
-        # stored_products_ids = db.get_scanned_non_stored_product_ids()
 
         store_product_states = [
             StoringState(product_id=product_id) for product_id in stored_products_ids
