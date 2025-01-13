@@ -29,8 +29,8 @@ jobs:
       - name: Install Python dependencies
         run: |
           python3 -m pip install --user --upgrade pip
-          sudo python3 -m pip install --break-system-packages -r requirements/requirements.txt
-          sudo python3 -m pip install --break-system-packages -r requirements/requirements-dev.txt
+          sudo python3 -m pip install --break-system-packages -r requirements/requirements.txt --ignore-installed
+          sudo python3 -m pip install --break-system-packages -r requirements/requirements-dev.txt --ignore-installed
       - name: Install Playwright
         run: sudo playwright install chromium
       - name: Mypy
