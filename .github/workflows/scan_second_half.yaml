@@ -26,16 +26,16 @@ jobs:
           sudo apt-get update
           sudo apt-get --assume-yes --no-install-recommends install openvpn          
           openvpn --version
-          sudo python -m pip install --upgrade pip
-          sudo pip install -r requirements/requirements.txt
-          sudo pip install -r requirements/requirements-dev.txt
+          python3 -m pip install --user --upgrade pip
+          sudo python3 -m pip install --break-system-packages -r requirements/requirements.txt
+          sudo python3 -m pip install --break-system-packages -r requirements/requirements-dev.txt
           playwright install chromium
       - name: Mypy
         run: |
-          sudo python -m mypy src/
+          sudo python3 -m mypy src/
       - name: Pylint
         run: |
-          sudo python -m pylint src/
+          sudo python3 -m pylint src/
       - name: Run
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
@@ -45,7 +45,7 @@ jobs:
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
         run: |
-          sudo -E python app.py --operation scan --partial second_half
+          sudo -E python3 app.py --operation scan --partial second_half
       - name: Handle failure
         if: ${{ failure() }}
         env:
