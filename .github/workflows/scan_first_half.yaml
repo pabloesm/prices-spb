@@ -35,10 +35,10 @@ jobs:
         run: sudo playwright install chromium
       - name: Mypy
         run: |
-          sudo python -m mypy src/
+          sudo python3 -m mypy src/
       - name: Pylint
         run: |
-          sudo python -m pylint src/
+          sudo python3 -m pylint src/
       - name: Run
         uses: nick-fields/retry@v3
         env:
