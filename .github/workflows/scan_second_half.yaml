@@ -33,6 +33,13 @@ jobs:
           sudo python3 -m pip install --break-system-packages -r requirements/requirements-dev.txt --ignore-installed
       - name: Install Playwright
         run: sudo playwright install chromium
+      - name: Move playwrigth to expected location
+        run: |
+          sudo mkdir -p /home/runner/.cache/ms-playwright/chromium_headless_shell-1148/chrome-linux
+          sudo cp -r /root/.cache/ms-playwright/chromium_headless_shell-1148/chrome-linux/* /home/runner/.cache/ms-playwright/chromium_headless_shell-1148/chrome-linux/
+          sudo chown -R runner:runner /home/runner/.cache/ms-playwright
+          sudo chmod -R 755 /home/runner/.cache/ms-playwright
+          ls -la /home/runner/.cache/ms-playwright/chromium_headless_shell-1148/chrome-linux/headless_shell
       - name: Mypy
         run: |
           sudo python3 -m mypy src/
