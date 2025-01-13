@@ -26,13 +26,11 @@ jobs:
           sudo apt-get update
           sudo apt-get --assume-yes --no-install-recommends install openvpn
           openvpn --version
-
       - name: Install Python dependencies
         run: |
           python3 -m pip install --user --upgrade pip
           sudo python3 -m pip install --break-system-packages -r requirements/requirements.txt
           sudo python3 -m pip install --break-system-packages -r requirements/requirements-dev.txt
-
       - name: Install Playwright
         run: sudo playwright install chromium
       - name: Mypy
