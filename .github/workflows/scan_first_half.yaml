@@ -66,7 +66,7 @@ jobs:
           timeout_minutes: 360
           max_attempts: 2
           retry_on: error
-          command: sudo -E python app.py --operation scan --partial first_half
+          command: sudo -E $(which python) app.py --operation scan --partial first_half
 
       - name: Handle failure
         if: ${{ failure() }}
