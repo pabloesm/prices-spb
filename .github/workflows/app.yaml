@@ -49,8 +49,10 @@ jobs:
 
       - name: Mypy
         run: |
-          sudo python -m mypy src/
+          PYTHON_PATH=$(which python)
+          sudo -E "$PYTHON_PATH" -m mypy src/
 
       - name: Pylint
         run: |
-          sudo python -m pylint src/
+          PYTHON_PATH=$(which python)
+          sudo -E "$PYTHON_PATH" -m pylint src/
