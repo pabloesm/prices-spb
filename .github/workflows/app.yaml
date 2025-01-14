@@ -21,21 +21,36 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install dependencies
+
+      - name: Update package lists
+        run: sudo apt-get update
+
+      - name: Install OpenVPN
         run: |
-          sudo apt-get update
-          sudo apt-get --assume-yes --no-install-recommends install openvpn          
+          sudo apt-get --assume-yes --no-install-recommends install openvpn
           openvpn --version
-          sudo pip install -r requirements/requirements.txt
-          sudo pip install -r requirements/requirements-dev.txt
-          playwright install chromium
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install production dependencies
+        run: pip install -r requirements/requirements.txt
+
+      - name: Install development dependencies
+        run: pip install -r requirements/requirements-dev.txt
+
+      - name: Install Playwright browser
+        run: playwright install chromium
+
       - name: Mypy
         run: |
           sudo python -m mypy src/
+
       - name: Pylint
         run: |
           sudo python -m pylint src/
