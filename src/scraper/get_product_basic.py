@@ -262,7 +262,7 @@ def _sample_categories(
 
     total_len = len(categories_all)
     quarter_size = total_len // 4
-    
+
     if partial_scan == "first_quarter":
         return categories_all[:quarter_size]
     if partial_scan == "second_quarter":
