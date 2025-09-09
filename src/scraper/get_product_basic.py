@@ -260,9 +260,22 @@ def _sample_categories(
     if partial_scan is None:
         return categories_all
 
+    total_len = len(categories_all)
+    quarter_size = total_len // 4
+    
+    if partial_scan == "first_quarter":
+        return categories_all[:quarter_size]
+    if partial_scan == "second_quarter":
+        return categories_all[quarter_size:2 * quarter_size]
+    if partial_scan == "third_quarter":
+        return categories_all[2 * quarter_size:3 * quarter_size]
+    if partial_scan == "fourth_quarter":
+        return categories_all[3 * quarter_size:]
+
+    # Keep backward compatibility with old two-part system
     if partial_scan == "first_half":
-        return categories_all[: len(categories_all) // 2]
+        return categories_all[:total_len // 2]
     if partial_scan == "second_half":
-        return categories_all[len(categories_all) // 2 :]
+        return categories_all[total_len // 2:]
 
     raise ValueError("Invalid value for `partial_scan`")

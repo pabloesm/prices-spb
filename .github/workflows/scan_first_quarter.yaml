@@ -1,4 +1,4 @@
-name: Scan products (get IDs) second half
+name: Scan products (get IDs) first quarter
 
 env:
   PYTHONUNBUFFERED: "1"
@@ -6,7 +6,7 @@ env:
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 4 * * *"
+    - cron: "0 0 * * *"
 
 permissions:
   contents: read
@@ -17,6 +17,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -53,6 +54,7 @@ jobs:
           sudo -E "$PYTHON_PATH" -m pylint src/
 
       - name: Run
+        uses: nick-fields/retry@v3
         env:
           DATABASE_NEON_URL: ${{ secrets.DATABASE_NEON_URL }}
           URL_SEED: ${{ secrets.URL_SEED }}
@@ -60,8 +62,11 @@ jobs:
           VPN_PASSWORD: ${{ secrets.VPN_PASSWORD }}
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
-        run: |
-          sudo -E $(which python) app.py --operation scan --partial second_half
+        with:
+          timeout_minutes: 360
+          max_attempts: 2
+          retry_on: error
+          command: sudo -E $(which python) app.py --operation scan --partial first_quarter
 
       - name: Handle failure
         if: ${{ failure() }}
@@ -70,7 +75,7 @@ jobs:
         run: |
           echo "Run step failed. Handling failure..."
           # Launch the scan_failover workflow (delayed)
-          curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "second_half"}'
+          curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "first_quarter"}'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
