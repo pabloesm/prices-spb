@@ -1,4 +1,4 @@
-name: Scan products (get IDs) first half
+name: Scan products (get IDs) fourth quarter
 
 env:
   PYTHONUNBUFFERED: "1"
@@ -6,7 +6,7 @@ env:
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 2 * * *"
+    - cron: "45 3 * * *"
 
 permissions:
   contents: read
@@ -66,7 +66,7 @@ jobs:
           timeout_minutes: 360
           max_attempts: 2
           retry_on: error
-          command: sudo -E $(which python) app.py --operation scan --partial first_half
+          command: sudo -E $(which python) app.py --operation scan --partial fourth_quarter
 
       - name: Handle failure
         if: ${{ failure() }}
@@ -75,7 +75,7 @@ jobs:
         run: |
           echo "Run step failed. Handling failure..."
           # Launch the scan_failover workflow (delayed)
-          curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "first_half"}'
+          curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "fourth_quarter"}'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
