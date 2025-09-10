@@ -24,7 +24,14 @@ def main():
         "--partial",
         "-p",
         type=str,
-        choices=["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"],
+        choices=[
+            "first_half", 
+            "second_half", 
+            "first_quarter", 
+            "second_quarter", 
+            "third_quarter", 
+            "fourth_quarter"
+        ],
         required=False,
         help="Scan/store only a part of the products",
     )
