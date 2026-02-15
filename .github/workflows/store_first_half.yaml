@@ -1,6 +1,5 @@
 name: Store products (get full info) first half
 
-
 env:
   PYTHONUNBUFFERED: "1"
 
