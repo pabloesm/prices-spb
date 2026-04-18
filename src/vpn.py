@@ -1,4 +1,6 @@
 import os
+import random
+import socket
 import subprocess
 import time
 from pathlib import Path
@@ -8,6 +10,26 @@ import httpx
 from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
 
 from src.config.logger import logger
+
+
+def extract_hostname_from_ovpn(config_file_path: str | Path) -> str | None:
+    """Extract the hostname from the 'remote' directive of an .ovpn file."""
+    with open(config_file_path, encoding="utf-8") as f:
+        for line in f:
+            if line.strip().startswith("remote "):
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    return parts[1]
+    return None
+
+
+def check_hostname_resolution(hostname: str) -> bool:
+    """Check if a hostname can be resolved via DNS."""
+    try:
+        socket.getaddrinfo(hostname, None)
+        return True
+    except (socket.gaierror, OSError):
+        return False
 
 
 class Vpn:
@@ -38,20 +60,30 @@ class Vpn:
         self.check_interval = check_interval
         self.start_periodic_check()
 
-    def connect(self):
+    def connect(self) -> bool:
         if self._disabled:
             logger.warning("VPN connection is disabled. No configuration provided.")
-            return
+            return False
 
-        tries = 0
-        while tries < 3:
-            self.vpn_process = connect_to_vpn(self.config_file_path)
-            public_ip = self.get_public_ip()
-            if public_ip and public_ip != self.host_ip:
-                logger.info("Connected to VPN with public IP: %s", public_ip)
-                return True
-            tries += 1
-            time.sleep(5)
+        if not self.config_file_path:
+            return False
+
+        hostname = extract_hostname_from_ovpn(self.config_file_path)
+        if hostname and not check_hostname_resolution(hostname):
+            logger.warning(
+                "DNS resolution failed for %s (config: %s). Skipping.",
+                hostname,
+                self.config_file_path,
+            )
+            return False
+
+        self.vpn_process = connect_to_vpn(self.config_file_path)
+        public_ip = self.get_public_ip()
+        if public_ip and public_ip != self.host_ip:
+            logger.info("Connected to VPN with public IP: %s", public_ip)
+            return True
+
+        return False
 
     def rotate(self):
         if self._disabled:
@@ -196,9 +228,9 @@ def kill_vpn():
 
 def get_ovpn_files(folder_path: str | Path) -> list[Path]:
     folder_path = Path(folder_path)
-    # Use glob to get all files with the .ovpn extension
-    ovpn_files = folder_path.glob("*.ovpn")
-    return list(ovpn_files)
+    ovpn_files = list(folder_path.glob("*.ovpn"))
+    random.shuffle(ovpn_files)
+    return ovpn_files
 
 
 class NameSolver:
