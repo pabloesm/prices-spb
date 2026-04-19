@@ -20,6 +20,8 @@ if os.getenv("URL_SEED") is None:
 
 SLEEP_TIME_SECONDS = 1
 PW_TIMEOUT_MS = 15000
+NAV_TIMEOUT_MS = 30000
+CATEGORY_MENU_SELECTOR = "css=span.category-menu__header"
 
 
 class ScanState(BaseModel):
@@ -67,14 +69,47 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             page.set_default_timeout(PW_TIMEOUT_MS)
             page.set_default_navigation_timeout(PW_TIMEOUT_MS)
             page.context.add_cookies(cookies)
-            page.goto(os.getenv("URL_SEED", "default_invalid_url"))
-            page.wait_for_load_state("load")
-            page.wait_for_load_state("domcontentloaded")
-            page.wait_for_load_state("networkidle")
 
+            pending_requests: dict[int, str] = {}
+
+            def _track_request(req):
+                pending_requests[id(req)] = req.url
+
+            def _untrack_request(req):
+                pending_requests.pop(id(req), None)
+
+            page.on("request", _track_request)
+            page.on("requestfinished", _untrack_request)
+            page.on("requestfailed", _untrack_request)
+
+            url_seed = os.getenv("URL_SEED", "default_invalid_url")
+            logger.info("Navigating to URL_SEED")
+            response = page.goto(url_seed, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
+            status = response.status if response is not None else None
+            logger.info("goto done: status=%s, final_url=%s", status, page.url)
+            page.screenshot(path="screenshot_00_after_goto.png", full_page=True)
+
+            try:
+                page.locator(CATEGORY_MENU_SELECTOR).first.wait_for(
+                    state="visible", timeout=PW_TIMEOUT_MS
+                )
+            except pw_TimeoutError:
+                page.screenshot(path="screenshot_01_wait_timeout.png", full_page=True)
+                logger.error(
+                    "Category menu not visible within %dms. Page title=%r, url=%s. "
+                    "Pending requests (%d): %s",
+                    PW_TIMEOUT_MS,
+                    page.title(),
+                    page.url,
+                    len(pending_requests),
+                    list(pending_requests.values())[:15],
+                )
+                raise
+
+            page.screenshot(path="screenshot_02_categories_visible.png", full_page=True)
             logger.debug("Fresh start")
             # Add/sync categories
-            categories_all = page.locator("css=span.category-menu__header").all()
+            categories_all = page.locator(CATEGORY_MENU_SELECTOR).all()
             categories_ = _sample_categories(categories_all, partial_scan)
             products_state.add_categories(categories_)
             logger.debug("Found %s categories", len(categories_))
@@ -85,7 +120,7 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             pending_cats = products_state.get_pending_categories()
             pending_cats[0].click()
             _ = check_too_much_requests(page)
-            page.wait_for_load_state("load")
+            page.locator("css=li.open li").first.wait_for(state="attached")
 
             subcategories = page.locator("css=li.open").locator("li").all()
             products_state.add_subcategories(pending_cats[0], subcategories)
@@ -94,7 +129,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             # Add/sync products
             pending_subcats[0].click()
             _ = check_too_much_requests(page)
-            page.wait_for_load_state("load")
             page.wait_for_url("**/categories/**")
             buttons_products = get_products_locators(page)
 
@@ -107,7 +141,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                 logger.debug("Iter to the next product")
                 pending_products[0].click()
                 _ = check_too_much_requests(page)
-                page.wait_for_load_state("load")
                 page.wait_for_url("**/product/**")
                 product_id = utils.extract_product_id_from_url(page.url)
                 page.locator("css=button.modal-content__close").click()
@@ -145,7 +178,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                     logger.debug("Load next category")
                     pending_cats[0].click()
                     _ = check_too_much_requests(page)
-                    page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     subcategories = page.locator("css=li.open").locator("li").all()
                     products_state.add_subcategories(pending_cats[0], subcategories)
@@ -157,7 +189,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                     logger.debug("Load next subcategory")
                     pending_subcats[0].click()
                     _ = check_too_much_requests(page)
-                    page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     page.wait_for_url("**/categories/**")
                     buttons_products = get_products_locators(page)
@@ -193,10 +224,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
 def _wait_until_load(page, last_category: bool = False) -> None:
     # Waiting logic
     page.screenshot(path="screenshot_20_wait.png")
-    page.wait_for_load_state("load")
-    page.screenshot(path="screenshot_21_wait.png")
-    page.wait_for_load_state("networkidle")
-    page.screenshot(path="screenshot_22_wait.png")
     tries = 0
     selector = "button.category-detail__next-subcategory"
     while tries < 3:

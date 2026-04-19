@@ -78,9 +78,11 @@ jobs:
           curl $URL_WEBHOOK_MAKE -H "Content-Type: application/json" -d '{"operation": "scan", "partial": "first_quarter"}'
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: snapshots
           path: |
             ./scanned_prodcts.pkl
+            ./*.png
             logger_msgs.log
