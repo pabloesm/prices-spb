@@ -120,7 +120,7 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             pending_cats = products_state.get_pending_categories()
             pending_cats[0].click()
             _ = check_too_much_requests(page)
-            page.wait_for_load_state("load")
+            page.locator("css=li.open li").first.wait_for(state="attached")
 
             subcategories = page.locator("css=li.open").locator("li").all()
             products_state.add_subcategories(pending_cats[0], subcategories)
@@ -129,7 +129,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             # Add/sync products
             pending_subcats[0].click()
             _ = check_too_much_requests(page)
-            page.wait_for_load_state("load")
             page.wait_for_url("**/categories/**")
             buttons_products = get_products_locators(page)
 
@@ -142,7 +141,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                 logger.debug("Iter to the next product")
                 pending_products[0].click()
                 _ = check_too_much_requests(page)
-                page.wait_for_load_state("load")
                 page.wait_for_url("**/product/**")
                 product_id = utils.extract_product_id_from_url(page.url)
                 page.locator("css=button.modal-content__close").click()
@@ -180,7 +178,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                     logger.debug("Load next category")
                     pending_cats[0].click()
                     _ = check_too_much_requests(page)
-                    page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     subcategories = page.locator("css=li.open").locator("li").all()
                     products_state.add_subcategories(pending_cats[0], subcategories)
@@ -192,7 +189,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
                     logger.debug("Load next subcategory")
                     pending_subcats[0].click()
                     _ = check_too_much_requests(page)
-                    page.wait_for_load_state("load")
                     _wait_until_load(page, last_category=False)
                     page.wait_for_url("**/categories/**")
                     buttons_products = get_products_locators(page)
@@ -228,10 +224,6 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
 def _wait_until_load(page, last_category: bool = False) -> None:
     # Waiting logic
     page.screenshot(path="screenshot_20_wait.png")
-    page.wait_for_load_state("load")
-    page.screenshot(path="screenshot_21_wait.png")
-    page.wait_for_load_state("networkidle")
-    page.screenshot(path="screenshot_22_wait.png")
     tries = 0
     selector = "button.category-detail__next-subcategory"
     while tries < 3:
