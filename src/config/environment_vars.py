@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Optional
 
 
 class EnvironmentVars:
@@ -10,14 +9,14 @@ class EnvironmentVars:
         )
 
     @staticmethod
-    def _get_required_environment_variable(name: str, fallback: Optional[str] = None) -> str:
+    def _get_required_environment_variable(name: str, fallback: str | None = None) -> str:
         val = os.environ.get(name, fallback)
         if not val:
             raise ValueError(f"Environment variable {name} not defined, exiting...")
         return val
 
     @staticmethod
-    def _get_optional_environment_variable(name: str, fallback: Optional[str] = None) -> str:
+    def _get_optional_environment_variable(name: str, fallback: str | None = None) -> str:
         val = os.environ.get(name, fallback)
         if not val:
             if not fallback:

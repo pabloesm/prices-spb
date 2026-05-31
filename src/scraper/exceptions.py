@@ -1,2 +1,2 @@
-class ScraperException(Exception):
+class ScraperError(Exception):
     pass

@@ -48,11 +48,11 @@ jobs:
       - name: Install Playwright browser
         run: uv run playwright install chromium
 
+      - name: Ruff
+        run: uv run ruff check src/ && uv run ruff format --check src/
+
       - name: Mypy
         run: uv run mypy src/
-
-      - name: Pylint
-        run: uv run pylint src/
 
       - name: Run
         uses: nick-fields/retry@v3

@@ -114,7 +114,7 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             products_state.add_categories(categories_)
             logger.debug("Found %s categories", len(categories_))
             if len(categories_) == 0:
-                raise exceptions.ScraperException("No categories found")
+                raise exceptions.ScraperError("No categories found")
 
             # Add/sync subcategories
             pending_cats = products_state.get_pending_categories()
@@ -207,7 +207,7 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
         time.sleep(SLEEP_TIME_SECONDS)
         logger.exception("InvalidStateError")
         return products_state
-    except exceptions.ScraperException as exc:
+    except exceptions.ScraperError as exc:
         logger.exception("An error occurred: %s", exc)
         return products_state
     except pw_Error as exc:
@@ -258,7 +258,7 @@ def get_products_locators(page) -> list[Locator]:
         buttons_products = page.locator(selector).all()
 
     if not buttons_products:
-        raise exceptions.ScraperException("No products found")
+        raise exceptions.ScraperError("No products found")
 
     if not isinstance(buttons_products, list):
         raise TypeError(f"Unexpected type: {type(buttons_products)}")
@@ -293,16 +293,16 @@ def _sample_categories(
     if partial_scan == "first_quarter":
         return categories_all[:quarter_size]
     if partial_scan == "second_quarter":
-        return categories_all[quarter_size:2 * quarter_size]
+        return categories_all[quarter_size : 2 * quarter_size]
     if partial_scan == "third_quarter":
-        return categories_all[2 * quarter_size:3 * quarter_size]
+        return categories_all[2 * quarter_size : 3 * quarter_size]
     if partial_scan == "fourth_quarter":
-        return categories_all[3 * quarter_size:]
+        return categories_all[3 * quarter_size :]
 
     # Keep backward compatibility with old two-part system
     if partial_scan == "first_half":
-        return categories_all[:total_len // 2]
+        return categories_all[: total_len // 2]
     if partial_scan == "second_half":
-        return categories_all[total_len // 2:]
+        return categories_all[total_len // 2 :]
 
     raise ValueError("Invalid value for `partial_scan`")

@@ -221,7 +221,7 @@ class ProductsState:
         for p in products_cat:
             # Only check subcategories of the belonging to the given category
             if p.subcategory_name == subcategory_name:
-                products_subcat.append((p))
+                products_subcat.append(p)
 
         if len(products_subcat) == 0:
             raise ValueError(f"Subcategory `{subcategory_name}` not found")
