@@ -237,14 +237,18 @@ def get_ovpn_files(folder_path: str | Path) -> list[Path]:
 
 class NameSolver:
     # https://github.com/encode/httpx/issues/1444
-    _PUBLIC_NAMESERVERS = ["8.8.8.8", "8.8.4.4"]
+    def __init__(self) -> None:
+        self._resolver = dns.resolver.Resolver()
+        self._resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
+        self._resolver.lifetime = 5.0
 
     def get(self, name: str) -> str:
         if name.endswith(".mercadona.es"):
-            resolver = dns.resolver.Resolver()
-            resolver.nameservers = self._PUBLIC_NAMESERVERS
-            answer = resolver.resolve(name, "A")
-            return str(answer[0])
+            try:
+                answer = self._resolver.resolve(name, "A")
+                return str(answer[0])
+            except dns.exception.DNSException as exc:
+                logger.warning("DNS resolution failed for %s: %s. Falling back to system DNS.", name, exc)
         return ""
 
     def resolve(self, request: Request) -> Request:
