@@ -6,6 +6,8 @@ import time
 from pathlib import Path
 from threading import Thread
 
+import dns.resolver
+
 import httpx
 from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
 
@@ -235,9 +237,14 @@ def get_ovpn_files(folder_path: str | Path) -> list[Path]:
 
 class NameSolver:
     # https://github.com/encode/httpx/issues/1444
+    _PUBLIC_NAMESERVERS = ["8.8.8.8", "8.8.4.4"]
+
     def get(self, name: str) -> str:
         if name.endswith(".mercadona.es"):
-            return "96.16.88.179"
+            resolver = dns.resolver.Resolver()
+            resolver.nameservers = self._PUBLIC_NAMESERVERS
+            answer = resolver.resolve(name, "A")
+            return str(answer[0])
         return ""
 
     def resolve(self, request: Request) -> Request:

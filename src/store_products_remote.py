@@ -119,8 +119,8 @@ async def main(partial_store: str | None = None):
 
 
 async def make_request_get(session, product_id: float) -> Any:
-    # Get product details
-    response = await session.get(API_URL_TEMPLATE.format(id=transform_id(product_id)))
+    # Get product details   
+    response = await session.get(API_URL_TEMPLATE.format(id=transform_id(product_id)), timeout=5.0)
     logger.info("Request product %s: Status Code - %s", product_id, response.status_code)
     return response.json()
 
