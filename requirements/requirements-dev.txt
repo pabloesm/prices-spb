@@ -1,7 +1,0 @@
-black
-isort
-mypy
-mypy-extensions
-pdbpp
-pylint==3.3.9
-pytest

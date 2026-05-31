@@ -1,1 +1,1 @@
-playwright install chromium
+uv run playwright install chromium

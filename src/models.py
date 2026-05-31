@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -18,95 +17,95 @@ class ScannedProduct(BaseModel):
 
 
 class HtmlCategoryDB(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     html: str
     category_name: str
     subcategory_name: str
     hash_value: str
-    created_at: Optional[datetime] = None
+    created_at: datetime | None = None
 
 
 class ProductDB(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     name: str
     unit: str
     image_url: str
     category_name: str
     subcategory_name: str
     section_name: str
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 class PriceDB(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     price: float
-    previous_price: Optional[float] = None
+    previous_price: float | None = None
     currency: str
     price_quantity: str
     html_category_id: int
     product_id: int
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 # Product Table
 class Product(BaseModel):
     id: float
-    ean: Optional[str] = None
-    slug: Optional[str] = None
-    brand: Optional[str] = None
-    limit_value: Optional[int] = None
-    origin: Optional[str] = None
-    packaging: Optional[str] = None
-    published: Optional[bool] = None
-    share_url: Optional[str] = None
-    thumbnail: Optional[str] = None
-    display_name: Optional[str] = None
-    unavailable_from: Optional[str] = None
-    is_variable_weight: Optional[bool] = None
-    legal_name: Optional[str] = None
-    description: Optional[str] = None
-    counter_info: Optional[str] = None
-    danger_mentions: Optional[str] = None
-    alcohol_by_volume: Optional[float] = None
-    mandatory_mentions: Optional[str] = None
-    product_variant: Optional[str] = None
-    usage_instructions: Optional[str] = None
-    storage_instructions: Optional[str] = None
-    badge_id: Optional[int] = None
-    supplier_id: Optional[int] = None
+    ean: str | None = None
+    slug: str | None = None
+    brand: str | None = None
+    limit_value: int | None = None
+    origin: str | None = None
+    packaging: str | None = None
+    published: bool | None = None
+    share_url: str | None = None
+    thumbnail: str | None = None
+    display_name: str | None = None
+    unavailable_from: str | None = None
+    is_variable_weight: bool | None = None
+    legal_name: str | None = None
+    description: str | None = None
+    counter_info: str | None = None
+    danger_mentions: str | None = None
+    alcohol_by_volume: float | None = None
+    mandatory_mentions: str | None = None
+    product_variant: str | None = None
+    usage_instructions: str | None = None
+    storage_instructions: str | None = None
+    badge_id: int | None = None
+    supplier_id: int | None = None
 
 
 # Badge Table
 class Badge(BaseModel):
-    id: Optional[int] = None
-    is_water: Optional[bool] = None
-    requires_age_check: Optional[bool] = None
+    id: int | None = None
+    is_water: bool | None = None
+    requires_age_check: bool | None = None
 
 
 # Supplier Table
 class Supplier(BaseModel):
-    id: Optional[int] = None
-    name: Optional[str] = None
+    id: int | None = None
+    name: str | None = None
 
 
 # Photo Table
 class Photo(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     product_id: float
-    zoom: Optional[str] = None
-    regular: Optional[str] = None
-    thumbnail: Optional[str] = None
-    perspective: Optional[int] = None
+    zoom: str | None = None
+    regular: str | None = None
+    thumbnail: str | None = None
+    perspective: int | None = None
 
 
 # Category Table
 class Category(BaseModel):
     id: int
-    name: Optional[str] = None
-    level: Optional[int] = None
-    order_value: Optional[int] = None
+    name: str | None = None
+    level: int | None = None
+    order_value: int | None = None
 
 
 # Product_Category Table
@@ -117,38 +116,38 @@ class ProductCategory(BaseModel):
 
 # Price_Instruction Table
 class PriceInstruction(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     product_id: float
-    iva: Optional[float] = None
-    is_new: Optional[bool] = None
-    is_pack: Optional[bool] = None
-    pack_size: Optional[float] = None
-    unit_name: Optional[str] = None
-    unit_size: Optional[float] = None
-    bulk_price: Optional[float] = None
-    unit_price: Optional[float] = None
-    approx_size: Optional[bool] = None
-    size_format: Optional[str] = None
-    total_units: Optional[int] = None
-    unit_selector: Optional[bool] = None
-    bunch_selector: Optional[bool] = None
-    drained_weight: Optional[float] = None
-    selling_method: Optional[int] = None
-    price_decreased: Optional[bool] = None
-    reference_price: Optional[float] = None
-    min_bunch_amount: Optional[float] = None
-    reference_format: Optional[str] = None
-    previous_unit_price: Optional[float] = None
-    increment_bunch_amount: Optional[float] = None
-    created_at: Optional[str] = None
+    iva: float | None = None
+    is_new: bool | None = None
+    is_pack: bool | None = None
+    pack_size: float | None = None
+    unit_name: str | None = None
+    unit_size: float | None = None
+    bulk_price: float | None = None
+    unit_price: float | None = None
+    approx_size: bool | None = None
+    size_format: str | None = None
+    total_units: int | None = None
+    unit_selector: bool | None = None
+    bunch_selector: bool | None = None
+    drained_weight: float | None = None
+    selling_method: int | None = None
+    price_decreased: bool | None = None
+    reference_price: float | None = None
+    min_bunch_amount: float | None = None
+    reference_format: str | None = None
+    previous_unit_price: float | None = None
+    increment_bunch_amount: float | None = None
+    created_at: str | None = None
 
 
 # Nutrition_Information Table
 class NutritionInformation(BaseModel):
-    id: Optional[int] = None
+    id: int | None = None
     product_id: float
-    allergens: Optional[str] = None
-    ingredients: Optional[str] = None
+    allergens: str | None = None
+    ingredients: str | None = None
 
 
 class FullInfo(BaseModel):
