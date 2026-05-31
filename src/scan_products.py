@@ -6,7 +6,7 @@ from src.config.logger import logger
 from src.config.settings import settings
 from src.models import ScannedProduct
 from src.scraper import get_product_basic
-from src.scraper.get_product_basic import ProductsState
+from src.scraper.scan_progress import ScanProgress
 from src.vpn import Vpn
 
 N_TRIES = 250
@@ -15,16 +15,16 @@ VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs") if settings.use_vpn_scan 
 
 
 def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct]:
-    products_state = ProductsState()
+    progress = ScanProgress()
     tries = 0
     vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
     try:
         while tries < N_TRIES:
             logger.debug("Try number: %s", tries)
             vpn.rotate()
-            products_state = get_product_basic.compute(products_state, partial_scan)
+            progress = get_product_basic.compute(progress, partial_scan)
             tries += 1
-            if products_state.is_finished:
+            if progress.is_finished:
                 break
     finally:
         vpn.kill()
@@ -33,7 +33,7 @@ def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct
         logger.error("Reached maximum number of tries")
         raise ValueError("Reached maximum number of tries when trying to get product IDs")
 
-    return products_state.get_scanned_products()
+    return progress.get_scanned_products()
 
 
 def main(partial_scan: str | None = None):

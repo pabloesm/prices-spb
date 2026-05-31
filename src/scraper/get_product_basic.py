@@ -1,3 +1,18 @@
+"""Scrape Mercadona for basic product info (id, category, subcategory).
+
+DRAFT — this is the rewritten scraper and has NOT yet been verified against a live
+run. It must be exercised end-to-end behind the VPN before being relied upon.
+
+Design
+------
+`compute()` walks the live catalogue top-down: category -> subcategory -> product.
+At every level the DOM is re-queried fresh (we never hold Playwright locators across
+navigations, which avoids the stale-locator problem the previous implementation had
+to work around). Progress is tracked in a `ScanProgress` object so that, when the
+outer VPN-rotation loop calls `compute()` again after a failure, already-scanned
+products and finished subcategories are skipped.
+"""
+
 import time
 from asyncio.exceptions import InvalidStateError
 from datetime import datetime
@@ -12,260 +27,232 @@ from src.config.logger import logger
 from src.config.settings import settings
 from src.models import ScannedProduct
 from src.scraper import exceptions, utils
-from src.scraper.product_state import ProductsState
+from src.scraper.scan_progress import ScanProgress
 
 SLEEP_TIME_SECONDS = 1
 PW_TIMEOUT_MS = 15000
 NAV_TIMEOUT_MS = 30000
+
+# Set True to dump full-page screenshots at each step while debugging the scraper.
+DEBUG_SCREENSHOTS = False
+
 CATEGORY_MENU_SELECTOR = "css=span.category-menu__header"
+SUBCATEGORY_SELECTOR = "css=li.open"
+PRODUCT_BUTTON_SELECTOR = "css=button.product-cell__content-link"
+MODAL_CLOSE_SELECTOR = "css=button.modal-content__close"
+TOO_MANY_REQUESTS_SELECTOR = 'button:has-text("Entendido")'
+
+COOKIES = [
+    SetCookieParam(
+        {
+            "name": "__mo_da",
+            "value": '{"warehouse":"vlc1","postalCode":"46001"}',
+            "domain": ".mercadona.es",
+            "path": "/",
+            "secure": True,
+        }
+    ),
+    SetCookieParam(
+        {
+            "name": "__mo_ca",
+            "value": '{"thirdParty":true,"necessary":true,"version":1}',
+            "domain": ".mercadona.es",
+            "path": "/",
+            "secure": True,
+        }
+    ),
+]
 
 
-def compute(products_state: ProductsState, partial_scan: str | None = None) -> ProductsState:
-    """Scrapes the website to get basic information the products (ID, category, subcategory).
+def compute(progress: ScanProgress, partial_scan: str | None = None) -> ScanProgress:
+    """Walk the catalogue, recording scanned products into `progress`.
 
-    Main steps:
-    -
+    Returns `progress` with `is_finished=True` once the whole (sampled) catalogue has
+    been scanned. On a recoverable error it returns the partial `progress` so the outer
+    retry loop can resume; unexpected errors are re-raised.
     """
-
-    cookies = [
-        SetCookieParam(
-            {
-                "name": "__mo_da",
-                "value": '{"warehouse":"vlc1","postalCode":"46001"}',
-                "domain": ".mercadona.es",
-                "path": "/",
-                "secure": True,
-            }
-        ),
-        SetCookieParam(
-            {
-                "name": "__mo_ca",
-                "value": '{"thirdParty":true,"necessary":true,"version":1}',
-                "domain": ".mercadona.es",
-                "path": "/",
-                "secure": True,
-            }
-        ),
-    ]
-
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(
-                headless=settings.playwright_headless, slow_mo=None, timeout=PW_TIMEOUT_MS
-            )
-            page = browser.new_page()
-            page.set_default_timeout(PW_TIMEOUT_MS)
-            page.set_default_navigation_timeout(PW_TIMEOUT_MS)
-            page.context.add_cookies(cookies)
+            page = _launch_page(p)
+            _goto_catalog(page)
 
-            pending_requests: dict[int, str] = {}
-
-            def _track_request(req):
-                pending_requests[id(req)] = req.url
-
-            def _untrack_request(req):
-                pending_requests.pop(id(req), None)
-
-            page.on("request", _track_request)
-            page.on("requestfinished", _untrack_request)
-            page.on("requestfailed", _untrack_request)
-
-            url_seed = settings.url_seed
-            logger.info("Navigating to URL_SEED")
-            response = page.goto(url_seed, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
-            status = response.status if response is not None else None
-            logger.info("goto done: status=%s, final_url=%s", status, page.url)
-            page.screenshot(path="screenshot_00_after_goto.png", full_page=True)
-
-            try:
-                page.locator(CATEGORY_MENU_SELECTOR).first.wait_for(
-                    state="visible", timeout=PW_TIMEOUT_MS
-                )
-            except pw_TimeoutError:
-                page.screenshot(path="screenshot_01_wait_timeout.png", full_page=True)
-                logger.error(
-                    "Category menu not visible within %dms. Page title=%r, url=%s. "
-                    "Pending requests (%d): %s",
-                    PW_TIMEOUT_MS,
-                    page.title(),
-                    page.url,
-                    len(pending_requests),
-                    list(pending_requests.values())[:15],
-                )
-                raise
-
-            page.screenshot(path="screenshot_02_categories_visible.png", full_page=True)
-            logger.debug("Fresh start")
-            # Add/sync categories
-            categories_all = page.locator(CATEGORY_MENU_SELECTOR).all()
-            categories_ = _sample_categories(categories_all, partial_scan)
-            products_state.add_categories(categories_)
-            logger.debug("Found %s categories", len(categories_))
-            if len(categories_) == 0:
+            category_names = _category_names(page, partial_scan)
+            if not category_names:
                 raise exceptions.ScraperError("No categories found")
+            logger.debug("Scanning %s categories", len(category_names))
 
-            # Add/sync subcategories
-            pending_cats = products_state.get_pending_categories()
-            pending_cats[0].click()
-            _ = check_too_much_requests(page)
-            page.locator("css=li.open li").first.wait_for(state="attached")
+            for category_name in category_names:
+                _scan_category(page, progress, category_name)
 
-            subcategories = page.locator("css=li.open").locator("li").all()
-            products_state.add_subcategories(pending_cats[0], subcategories)
-            pending_subcats = products_state.get_pending_subcategories(pending_cats[0])
+    except (pw_TimeoutError, InvalidStateError, exceptions.ScraperError, pw_Error) as exc:
+        time.sleep(SLEEP_TIME_SECONDS)
+        logger.exception("Recoverable scraping error; will retry next session: %s", exc)
+        return progress
+    except Exception:
+        logger.exception("Unexpected error during scraping")
+        raise
 
-            # Add/sync products
-            pending_subcats[0].click()
-            _ = check_too_much_requests(page)
-            page.wait_for_url("**/categories/**")
-            buttons_products = get_products_locators(page)
+    progress.is_finished = True
+    return progress
 
-            products_state.add_products(pending_cats[0], pending_subcats[0], buttons_products)
-            pending_products = products_state.get_pending_products(
-                pending_cats[0], pending_subcats[0]
-            )
 
-            while pending_products:
-                logger.debug("Iter to the next product")
-                pending_products[0].click()
-                _ = check_too_much_requests(page)
-                page.wait_for_url("**/product/**")
-                product_id = utils.extract_product_id_from_url(page.url)
-                page.locator("css=button.modal-content__close").click()
+def _scan_category(page, progress: ScanProgress, category_name: str) -> None:
+    _open_category(page, category_name)
+    page.locator("css=li.open li").first.wait_for(state="attached")
 
-                products_state.add_scanned_product(
-                    pending_cats[0],
-                    pending_subcats[0],
-                    pending_products[0],
-                    ScannedProduct(
-                        product_id=product_id,
-                        category_name=pending_cats[0].inner_text(),
-                        subcategory_name=pending_subcats[0].inner_text(),
-                        scanned_at=datetime.now(),
-                    ),
-                )
-                logger.info("Official product ID: %s", product_id)
+    subcategory_names = [
+        item.inner_text() for item in page.locator(SUBCATEGORY_SELECTOR).locator("li").all()
+    ]
+    logger.debug("Category %s: %s subcategories", category_name, len(subcategory_names))
 
-                current_cat = pending_cats[0]
-                current_subcat = pending_subcats[0]
+    for subcategory_name in subcategory_names:
+        if progress.is_subcategory_done(category_name, subcategory_name):
+            logger.debug("Skip done subcategory: %s / %s", category_name, subcategory_name)
+            continue
+        _scan_subcategory(page, progress, category_name, subcategory_name)
+        progress.mark_subcategory_done(category_name, subcategory_name)
 
-                pending_cats = products_state.get_pending_categories()
-                if pending_cats:
-                    pending_subcats = products_state.get_pending_subcategories(pending_cats[0])
-                else:
-                    # No more categories to scan
-                    break
-                if pending_subcats:
-                    pending_products = products_state.get_pending_products(
-                        pending_cats[0], pending_subcats[0]
-                    )
 
-                if current_cat != pending_cats[0] or len(pending_subcats) == 0:
-                    # The current category is finished, we need to load the next one (and the
-                    # corresponding subcategories)
-                    logger.debug("Load next category")
-                    pending_cats[0].click()
-                    _ = check_too_much_requests(page)
-                    _wait_until_load(page, last_category=False)
-                    subcategories = page.locator("css=li.open").locator("li").all()
-                    products_state.add_subcategories(pending_cats[0], subcategories)
-                    pending_subcats = products_state.get_pending_subcategories(pending_cats[0])
+def _scan_subcategory(
+    page, progress: ScanProgress, category_name: str, subcategory_name: str
+) -> None:
+    # Re-open the category so the subcategory is reachable from a known page state.
+    _open_category(page, category_name)
+    page.locator("css=li.open li").first.wait_for(state="attached")
+    _open_subcategory(page, subcategory_name)
+    page.wait_for_url("**/categories/**")
 
-                if current_subcat != pending_subcats[0]:
-                    # The current subcategory is finished, we need to load the next one (and the
-                    # corresponding products)
-                    logger.debug("Load next subcategory")
-                    pending_subcats[0].click()
-                    _ = check_too_much_requests(page)
-                    _wait_until_load(page, last_category=False)
-                    page.wait_for_url("**/categories/**")
-                    buttons_products = get_products_locators(page)
-                    products_state.add_products(
-                        pending_cats[0], pending_subcats[0], buttons_products
-                    )
-                    pending_products = products_state.get_pending_products(
-                        pending_cats[0], pending_subcats[0]
-                    )
+    product_names = [button.inner_text() for button in get_products_locators(page)]
+    logger.debug(
+        "Subcategory %s / %s: %s products", category_name, subcategory_name, len(product_names)
+    )
 
+    for product_name in product_names:
+        if progress.is_product_scanned(category_name, product_name):
+            continue
+        _scan_product(page, progress, category_name, subcategory_name, product_name)
+
+
+def _scan_product(
+    page,
+    progress: ScanProgress,
+    category_name: str,
+    subcategory_name: str,
+    product_name: str,
+) -> None:
+    _open_product(page, product_name)
+    page.wait_for_url("**/product/**")
+    product_id = utils.extract_product_id_from_url(page.url)
+    page.locator(MODAL_CLOSE_SELECTOR).click()
+
+    progress.record(
+        ScannedProduct(
+            product_id=product_id,
+            category_name=category_name,
+            subcategory_name=subcategory_name,
+            scanned_at=datetime.now(),
+        ),
+        product_name,
+    )
+    logger.info("Scanned product %s (%s / %s)", product_id, category_name, subcategory_name)
+
+
+def _launch_page(p):
+    browser = p.chromium.launch(
+        headless=settings.playwright_headless, slow_mo=None, timeout=PW_TIMEOUT_MS
+    )
+    page = browser.new_page()
+    page.set_default_timeout(PW_TIMEOUT_MS)
+    page.set_default_navigation_timeout(PW_TIMEOUT_MS)
+    page.context.add_cookies(COOKIES)
+    return page
+
+
+def _goto_catalog(page) -> None:
+    logger.info("Navigating to URL_SEED")
+    response = page.goto(settings.url_seed, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
+    status = response.status if response is not None else None
+    logger.info("goto done: status=%s, final_url=%s", status, page.url)
+    _screenshot(page, "after_goto")
+
+    try:
+        page.locator(CATEGORY_MENU_SELECTOR).first.wait_for(state="visible", timeout=PW_TIMEOUT_MS)
     except pw_TimeoutError:
-        time.sleep(SLEEP_TIME_SECONDS)
-        logger.exception("TimeoutError")
-        return products_state
-    except InvalidStateError:
-        time.sleep(SLEEP_TIME_SECONDS)
-        logger.exception("InvalidStateError")
-        return products_state
-    except exceptions.ScraperError as exc:
-        logger.exception("An error occurred: %s", exc)
-        return products_state
-    except pw_Error as exc:
-        logger.exception("An error occurred: %s", exc)
-        return products_state
-    except Exception as exc:
-        logger.exception("An unexpected error occurred: %s", exc)
-        raise exc
-
-    products_state.is_finished = True
-    return products_state
+        _screenshot(page, "wait_timeout")
+        logger.error(
+            "Category menu not visible within %dms. Page title=%r, url=%s.",
+            PW_TIMEOUT_MS,
+            page.title(),
+            page.url,
+        )
+        raise
 
 
-def _wait_until_load(page, last_category: bool = False) -> None:
-    # Waiting logic
-    page.screenshot(path="screenshot_20_wait.png")
-    tries = 0
-    selector = "button.category-detail__next-subcategory"
-    while tries < 3:
-        page.screenshot(path=f"screenshot_23_{tries}_wait.png")
-        tries += 1
-        try:
-            # This is the last element to load ("Next subcategory" button)
-            page.query_selector(selector).wait_for_element_state("stable", timeout=3000)
-            break
-        except TimeoutError as exc:
-            logger.debug("Timeout for `%s`", selector)
-            if not last_category:
-                raise pw_TimeoutError(f"`{selector}` did not load") from exc
-        except AttributeError:
-            logger.debug("Waiting for `%s`", selector)
-            page.wait_for_timeout(1000)
+def _category_names(page, partial_scan: str | None) -> list[str]:
+    categories = _sample_categories(page.locator(CATEGORY_MENU_SELECTOR).all(), partial_scan)
+    return [category.inner_text() for category in categories]
+
+
+def _open_category(page, category_name: str) -> None:
+    headers = page.locator(CATEGORY_MENU_SELECTOR)
+    for i in range(headers.count()):
+        header = headers.nth(i)
+        if header.inner_text() == category_name:
+            header.click()
+            check_too_much_requests(page)
+            return
+    raise exceptions.ScraperError(f"Category not found: {category_name}")
+
+
+def _open_subcategory(page, subcategory_name: str) -> None:
+    items = page.locator(SUBCATEGORY_SELECTOR).locator("li")
+    for i in range(items.count()):
+        item = items.nth(i)
+        if item.inner_text() == subcategory_name:
+            item.click()
+            check_too_much_requests(page)
+            return
+    raise exceptions.ScraperError(f"Subcategory not found: {subcategory_name}")
+
+
+def _open_product(page, product_name: str) -> None:
+    for button in get_products_locators(page):
+        if button.inner_text() == product_name:
+            button.click()
+            check_too_much_requests(page)
+            return
+    raise exceptions.ScraperError(f"Product not found: {product_name}")
 
 
 def get_products_locators(page) -> list[Locator]:
-    page.screenshot(path="screenshot_30_before_locate.png")
-    selector = "css=button.product-cell__content-link"
-    buttons_products = page.locator(selector).all()
-    page.screenshot(path="screenshot_31_after_locate.png")
+    buttons = page.locator(PRODUCT_BUTTON_SELECTOR).all()
     tries = 0
-    while not buttons_products and tries < 3:
+    while not buttons and tries < 3:
         tries += 1
-        page.screenshot(path="screenshot_32_before_wait.png")
-        _ = check_too_much_requests(page)
-        logger.debug("Waiting for `%s`", selector)
+        check_too_much_requests(page)
+        logger.debug("Waiting for `%s`", PRODUCT_BUTTON_SELECTOR)
         page.wait_for_timeout(1000)
-        page.screenshot(path="screenshot_33_after_wait.png")
-        buttons_products = page.locator(selector).all()
+        buttons = page.locator(PRODUCT_BUTTON_SELECTOR).all()
 
-    if not buttons_products:
+    if not buttons:
         raise exceptions.ScraperError("No products found")
-
-    if not isinstance(buttons_products, list):
-        raise TypeError(f"Unexpected type: {type(buttons_products)}")
-
-    return buttons_products
+    if not isinstance(buttons, list):
+        raise TypeError(f"Unexpected type: {type(buttons)}")
+    return buttons
 
 
 def check_too_much_requests(page) -> bool:
-    # Selector to find the button with text "Entendido"
-    button_selector = 'button:has-text("Entendido")'
-
-    # Check if the button exists
-    button_exists = page.locator(button_selector).count() > 0
-    if button_exists:
-        logger.debug("Button 'Entendido' exists: %s", button_exists)
-        page.locator(button_selector).click()
+    """Dismiss the "too many requests" dialog if present; return whether it appeared."""
+    if page.locator(TOO_MANY_REQUESTS_SELECTOR).count() > 0:
+        logger.debug("Dismissing 'Entendido' (too-many-requests) dialog")
+        page.locator(TOO_MANY_REQUESTS_SELECTOR).click()
         return True
-
     return False
+
+
+def _screenshot(page, name: str) -> None:
+    if DEBUG_SCREENSHOTS:
+        page.screenshot(path=f"screenshot_{name}.png", full_page=True)
 
 
 def _sample_categories(
