@@ -7,7 +7,6 @@ from pathlib import Path
 from threading import Thread
 
 import dns.resolver
-
 import httpx
 from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
 
@@ -248,7 +247,8 @@ class NameSolver:
                 answer = self._resolver.resolve(name, "A")
                 return str(answer[0])
             except dns.exception.DNSException as exc:
-                logger.warning("DNS resolution failed for %s: %s. Falling back to system DNS.", name, exc)
+                msg = f"DNS resolution failed for {name}: {exc}. Falling back to system DNS."
+                logger.warning(msg)
         return ""
 
     def resolve(self, request: Request) -> Request:
