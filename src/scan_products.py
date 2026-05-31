@@ -3,6 +3,7 @@ from pathlib import Path
 
 from src import db
 from src.config.logger import logger
+from src.config.settings import settings
 from src.models import ScannedProduct
 from src.scraper import get_product_basic
 from src.scraper.get_product_basic import ProductsState
@@ -10,7 +11,7 @@ from src.vpn import Vpn
 
 N_TRIES = 250
 
-VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs") if settings.use_vpn_scan else None
 
 
 def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct]:

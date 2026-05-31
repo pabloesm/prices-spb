@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     # to watch the browser.
     playwright_headless: bool = True
 
+    # Route the scan flow through the VPN (default). Set USE_VPN_SCAN=false to scan
+    # without the VPN. Only affects the scan flow; the store flows are unaffected.
+    use_vpn_scan: bool = True
+
     @property
     def logging_level(self) -> int:
         """The `log_level` string as a `logging` level constant (defaults to INFO)."""
