@@ -9,6 +9,7 @@ dependencies = [
     "playwright",
     "psycopg2-binary",
     "pydantic",
+    "pydantic-settings",
     "types-beautifulsoup4",
     "types-psycopg2",
     "validators",

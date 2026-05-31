@@ -37,7 +37,7 @@ def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct
 
 def main(partial_scan: str | None = None):
     products = get_scanned_products(partial_scan=partial_scan)
-    with open("scanned_prodcts.pkl", "wb") as f:
+    with open("scanned_products.pkl", "wb") as f:
         pickle.dump(products, f)
 
     products_ids = [product.product_id for product in products]
@@ -51,5 +51,4 @@ def main(partial_scan: str | None = None):
     logger.info("Number of new products: %s", len(new_products))
     for new_product in new_products:
         logger.debug("Parsing product: %s", new_product.product_id)
-        db.insert_scanned_product(new_product)
         db.insert_scanned_product(new_product)

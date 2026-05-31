@@ -25,30 +25,6 @@ class HtmlCategoryDB(BaseModel):
     created_at: datetime | None = None
 
 
-class ProductDB(BaseModel):
-    id: int | None = None
-    name: str
-    unit: str
-    image_url: str
-    category_name: str
-    subcategory_name: str
-    section_name: str
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-
-
-class PriceDB(BaseModel):
-    id: int | None = None
-    price: float
-    previous_price: float | None = None
-    currency: str
-    price_quantity: str
-    html_category_id: int
-    product_id: int
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
-
-
 # Product Table
 class Product(BaseModel):
     id: float

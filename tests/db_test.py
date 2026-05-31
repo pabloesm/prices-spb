@@ -1,4 +1,3 @@
-import hashlib
 import json
 
 from src import db
@@ -6,58 +5,15 @@ from src.config.logger import logger
 from src.models import (
     Badge,
     Category,
-    HtmlCategoryDB,
     NutritionInformation,
     Photo,
-    PriceDB,
     PriceInstruction,
     Product,
     ProductCategory,
-    ProductDB,
     ScannedProduct,
     Supplier,
 )
 from src.scraper.info_parser import InfoParser
-
-# def test_db():
-#     # Arrange
-#     with open("tests/fixtures/products.json", "r", encoding="utf-8") as json_file:
-#         products_dict = json.load(json_file)
-#     products = [Product_DEPRECATED(**item) for item in products_dict]
-
-#     html_fake = "<html>My fake HTML!</html>"
-#     hash_value = hashlib.sha256(html_fake.encode()).hexdigest()
-#     html_category_db = HtmlCategoryDB(
-#         html=html_fake,
-#         category_name="category_name",
-#         subcategory_name="subcategory_name",
-#         hash_value=hash_value,
-#     )
-
-#     logger.info("Checking %s products of %s", len(products), "subcategory_name")
-#     for product in products:
-#         product_db = ProductDB(
-#             name=product.name,
-#             unit=product.unit,
-#             image_url=product.image_url,
-#             category_name=product.category_name,
-#             subcategory_name=product.subcategory_name,
-#             section_name=product.section_name,
-#         )
-
-#         # Act
-#         html_id = db.insert_html_category(html_category_db)
-#         product_id = db.insert_product(product_db)
-
-#         price_db = PriceDB(
-#             price=product.price,
-#             previous_price=product.previous_price,
-#             currency=product.currency,
-#             price_quantity=product.price_quantity,
-#             html_category_id=html_id,
-#             product_id=product_id,
-#         )
-#         price_id = db.insert_price(price_db)
 
 
 def test_count_elements_in_table():
@@ -68,7 +24,7 @@ def test_count_elements_in_table():
 
 def test_insert_scanned_product():
     # Arrange
-    with open("tests/fixtures/scanned_products.json", "r", encoding="utf-8") as json_file:
+    with open("tests/fixtures/scanned_products.json", encoding="utf-8") as json_file:
         scanned_products_dict = json.load(json_file)
 
     scanned_products = [ScannedProduct(**item) for item in scanned_products_dict]
@@ -82,7 +38,7 @@ def test_insert_scanned_product():
 
 def test_insert_product_full():
     # Arrange
-    with open("tests/fixtures/products_full.json", "r", encoding="utf-8") as json_file:
+    with open("tests/fixtures/products_full.json", encoding="utf-8") as json_file:
         products_full_dict = json.load(json_file)
 
     products = []

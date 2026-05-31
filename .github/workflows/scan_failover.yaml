@@ -74,5 +74,5 @@ jobs:
         with:
           name: snapshots
           path: |
-            ./scanned_prodcts.pkl
+            ./scanned_products.pkl
             logger_msgs.log

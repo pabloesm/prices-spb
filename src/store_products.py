@@ -1,10 +1,10 @@
-import os
 import time
 
 import httpx
 
 from src import db
 from src.config.logger import logger
+from src.config.settings import settings
 from src.models import (
     Badge,
     Category,
@@ -18,9 +18,7 @@ from src.models import (
 )
 from src.scraper.info_parser import InfoParser
 
-API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE", "empty_url")
-if not API_URL_TEMPLATE or API_URL_TEMPLATE == "empty_url":
-    raise ValueError("API_URL_TEMPLATE environment variable must be provided")
+API_URL_TEMPLATE = settings.api_url_template
 
 
 def main():

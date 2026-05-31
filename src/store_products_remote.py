@@ -1,5 +1,4 @@
 import asyncio
-import os
 import time
 from enum import Enum
 from pathlib import Path
@@ -10,6 +9,8 @@ from pydantic import BaseModel
 
 from src import db
 from src.config.logger import logger
+from src.config.settings import settings
+from src.dns_override import AsyncCustomHost, NameSolver
 from src.models import (
     Badge,
     Category,
@@ -21,18 +22,18 @@ from src.models import (
     Supplier,
 )
 from src.scraper.info_parser import InfoParser
-from src.vpn import AsyncCustomHost, NameSolver, Vpn
+from src.vpn import Vpn
 
-VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
-VPN_CFG_FOLDER_PATH = None
+# Set to Path("vpn_configs") to route the store run through the VPN; None disables it.
+VPN_CFG_FOLDER_PATH: Path | None = None
 
-API_URL_TEMPLATE = str(os.environ.get("API_URL_TEMPLATE"))
-if not os.environ.get("API_URL_TEMPLATE"):
-    raise ValueError("API_URL_TEMPLATE environment variable must be provided")
+API_URL_TEMPLATE = settings.api_url_template
+CF_URL = settings.cf_url
 
-CF_URL = os.environ.get("CF_URL")
-if not CF_URL:
-    raise ValueError("CF_URL environment variable must be provided")
+MAX_STORE_TRIES = 3
+BATCH_SIZE = 35
+SLEEP_BETWEEN_BATCHES_SECONDS = 10
+SLEEP_BETWEEN_REQUESTS_SECONDS = 0.1
 
 
 class ProductStoringStatus(Enum):
@@ -63,9 +64,13 @@ class StoringStates:
     def get_pending(self) -> list[StoringState]:
         # Set failed states if necessary
         for state in self.storing_states:
-            if state.n_tries >= 3:
+            if state.n_tries >= MAX_STORE_TRIES:
                 state.status = ProductStoringStatus.FAILED
-                logger.warning("Product %s failed to store after 3 tries", state.product_id)
+                logger.warning(
+                    "Product %s failed to store after %s tries",
+                    state.product_id,
+                    MAX_STORE_TRIES,
+                )
 
         return [
             state for state in self.storing_states if state.status == ProductStoringStatus.PENDING
@@ -97,23 +102,22 @@ async def main(partial_store: str | None = None):
         # Notice that states are mutated during the storing process
         storing_states = StoringStates(store_product_states)
 
-        # For each `batch_size` products IDS
-        batch_size = 35
+        # Each pass processes every currently-pending product once, in batches.
+        # Products that fail stay pending and are retried on the next pass (until MAX_STORE_TRIES).
         while storing_states.get_pending():
-            for i in range(0, len(storing_states.get_pending()), batch_size):
+            pending = storing_states.get_pending()
+            for start in range(0, len(pending), BATCH_SIZE):
                 vpn.rotate()
+                batch = pending[start : start + BATCH_SIZE]
+                await store_product_details(batch)
 
-                storings_pending = storing_states.get_pending()
-                storings_batch = storings_pending[i : i + batch_size]
-
-                await store_product_details(storings_batch)
-                n_pending = len(storing_states.get_pending())
-                n_failed = len(storing_states.get_failed())
-                n_success = len(storing_states.get_success())
                 logger.info(
-                    "Pending: %s -- Failed: %s -- Success: %s", n_pending, n_failed, n_success
+                    "Pending: %s -- Failed: %s -- Success: %s",
+                    len(storing_states.get_pending()),
+                    len(storing_states.get_failed()),
+                    len(storing_states.get_success()),
                 )
-                time.sleep(10)
+                time.sleep(SLEEP_BETWEEN_BATCHES_SECONDS)
     finally:
         vpn.kill()
 
@@ -135,39 +139,55 @@ async def make_request_post(session, product_details: dict) -> Any:
 
 async def store_product_details(products_state: list[StoringState]):
     async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver()), timeout=5.0) as session:
-        tasks_get = []
-        for product_state in products_state:
-            task = asyncio.create_task(make_request_get(session, product_state.product_id))
-            tasks_get.append(task)
-            await asyncio.sleep(0.1)  # To avoid sending requests too quickly
-        products_details = await asyncio.gather(*tasks_get, return_exceptions=True)
-
-        tasks_post = []
-        for product_details in products_details:
-            if not isinstance(product_details, dict):
-                continue
-            task = asyncio.create_task(make_request_post(session, product_details))
-            tasks_post.append(task)
-
-        posts_responses = await asyncio.gather(*tasks_post, return_exceptions=True)
-        success_ids = []
-        for pr in posts_responses:
-            try:
-                if not isinstance(pr, dict):
-                    continue
-                success_ids.append(pr["productId"])
-            except Exception:
-                pass
-
-        for product_state in products_state:
-            if product_state.product_id in success_ids:
-                product_state.status = ProductStoringStatus.SUCCESS
-            else:
-                product_state.n_tries += 1
+        product_details = await _fetch_all(session, products_state)
+        posts_responses = await _post_all(session, product_details)
+        success_ids = _extract_success_ids(posts_responses)
+        _update_states(products_state, success_ids)
 
         logger.debug("Posts responses: %s", posts_responses)
         logger.info("Tried: %s -- Stored: %s", len(products_state), len(success_ids))
-        return posts_responses
+
+
+async def _fetch_all(session, products_state: list[StoringState]) -> list[Any]:
+    """Fetch product details for the batch, one GET per product."""
+    tasks = []
+    for product_state in products_state:
+        tasks.append(asyncio.create_task(make_request_get(session, product_state.product_id)))
+        await asyncio.sleep(SLEEP_BETWEEN_REQUESTS_SECONDS)  # avoid sending requests too quickly
+    return await asyncio.gather(*tasks, return_exceptions=True)
+
+
+async def _post_all(session, product_details: list[Any]) -> list[Any]:
+    """Store each successfully-fetched product via the Cloudflare endpoint."""
+    tasks = [
+        asyncio.create_task(make_request_post(session, details))
+        for details in product_details
+        if isinstance(details, dict)
+    ]
+    return await asyncio.gather(*tasks, return_exceptions=True)
+
+
+def _extract_success_ids(posts_responses: list[Any]) -> list:
+    """Pull the productId out of each successful POST response."""
+    success_ids = []
+    for response in posts_responses:
+        if not isinstance(response, dict):
+            continue
+        product_id = response.get("productId")
+        if product_id is None:
+            logger.warning("POST response missing 'productId': %s", response)
+            continue
+        success_ids.append(product_id)
+    return success_ids
+
+
+def _update_states(products_state: list[StoringState], success_ids: list) -> None:
+    """Mark stored products as SUCCESS; bump the try counter for the rest."""
+    for product_state in products_state:
+        if product_state.product_id in success_ids:
+            product_state.status = ProductStoringStatus.SUCCESS
+        else:
+            product_state.n_tries += 1
 
 
 def warm_up_endpoint():
