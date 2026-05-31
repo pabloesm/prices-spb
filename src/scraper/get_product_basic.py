@@ -50,7 +50,9 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, slow_mo=None, timeout=PW_TIMEOUT_MS)
+            browser = p.chromium.launch(
+                headless=settings.playwright_headless, slow_mo=None, timeout=PW_TIMEOUT_MS
+            )
             page = browser.new_page()
             page.set_default_timeout(PW_TIMEOUT_MS)
             page.set_default_navigation_timeout(PW_TIMEOUT_MS)

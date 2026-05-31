@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     url_webhook_make: str = ""
     log_level: str = "debug"
 
+    # Run the scraper browser headless (default). Set PLAYWRIGHT_HEADLESS=false in dev
+    # to watch the browser.
+    playwright_headless: bool = True
+
     @property
     def logging_level(self) -> int:
         """The `log_level` string as a `logging` level constant (defaults to INFO)."""
