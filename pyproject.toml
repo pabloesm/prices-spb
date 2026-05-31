@@ -1,3 +1,30 @@
+[project]
+name = "prices-spb"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4",
+    "dnspython",
+    "httpx",
+    "playwright",
+    "psycopg2-binary",
+    "pydantic",
+    "types-beautifulsoup4",
+    "types-psycopg2",
+    "validators",
+]
+
+[dependency-groups]
+dev = [
+    "black",
+    "isort",
+    "mypy",
+    "mypy-extensions",
+    "pdbpp",
+    "pylint==3.3.9",
+    "pytest",
+]
+
 # Example configuration for Black.
 
 # NOTE: you have to use single-quoted strings in TOML for regular expressions.
