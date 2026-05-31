@@ -1,10 +1,11 @@
-import os
+from contextlib import contextmanager
 
 import psycopg2.extensions
 from psycopg2 import sql
 from psycopg2.pool import SimpleConnectionPool
 
 from src.config.logger import logger
+from src.config.settings import settings
 from src.models import (
     Badge,
     Category,
@@ -18,14 +19,13 @@ from src.models import (
     Supplier,
 )
 
-if os.getenv("DATABASE_NEON_URL") is None:
-    raise ValueError("DATABASE_NEON_URL environment variable not set.")
+# NOTE: product ids are floats by schema (e.g. "64.1"); other table ids are ints.
 
 # Create a connection pool
 connection_pool = SimpleConnectionPool(
     minconn=1,
     maxconn=20,
-    dsn=os.getenv("DATABASE_NEON_URL"),
+    dsn=settings.database_neon_url,
 )
 
 
@@ -47,19 +47,41 @@ def get_valid_connection() -> psycopg2.extensions.connection:
     return conn  # type: ignore
 
 
-def insert_product(product: Product) -> float:
+@contextmanager
+def cursor():
+    """Yield a cursor on a healthy pooled connection.
+
+    Commits on clean exit, rolls back on error (so a failed transaction never returns
+    to the pool in an aborted state), and always returns the connection to the pool.
+    """
     conn = get_valid_connection()
-    cursor = conn.cursor()
-
+    cur = conn.cursor()
     try:
-        # Check if the product already exists
-        cursor.execute("SELECT id FROM product WHERE id = %s", (product.id,))
+        yield cur
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+        connection_pool.putconn(conn)
 
-        existing_id = cursor.fetchone()
+
+def _fetch_id(cur, table: str):
+    """Return the id from the last RETURNING/SELECT row, or raise if none came back."""
+    row = cur.fetchone()
+    if not row:
+        raise ValueError(f"No ID returned from `{table}` table")
+    return row[0]
+
+
+def insert_product(product: Product) -> float:
+    with cursor() as cur:
+        cur.execute("SELECT id FROM product WHERE id = %s", (product.id,))
+        existing_id = cur.fetchone()
         if existing_id:
             return float(existing_id[0])
 
-        # If product doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO product (
@@ -95,7 +117,7 @@ def insert_product(product: Product) -> float:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 product.id,
@@ -124,35 +146,21 @@ def insert_product(product: Product) -> float:
                 product.supplier_id,
             ),
         )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `product` table")
-        new_id = result[0]
-        conn.commit()
+        new_id = _fetch_id(cur, "product")
         logger.info("Inserted product: %s", product.id)
         return float(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_badge(badge: Badge) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the badge already exists for the given is_water and requires_age_check
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT id FROM badge WHERE is_water = %s AND requires_age_check = %s",
             (badge.is_water, badge.requires_age_check),
         )
-        existing_id = cursor.fetchone()
-
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If badge doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO badge (
@@ -163,42 +171,19 @@ def insert_badge(badge: Badge) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
-            insert_query,
-            (
-                badge.is_water,
-                badge.requires_age_check,
-            ),
-        )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `badge` table")
-        new_id = result[0]
-        conn.commit()
+        cur.execute(insert_query, (badge.is_water, badge.requires_age_check))
+        new_id = _fetch_id(cur, "badge")
         logger.info("Inserted badge: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_supplier(supplier: Supplier) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the supplier already exists for the given name
-        cursor.execute(
-            "SELECT id FROM supplier WHERE name = %s",
-            (supplier.name,),
-        )
-        existing_id = cursor.fetchone()
-
+    with cursor() as cur:
+        cur.execute("SELECT id FROM supplier WHERE name = %s", (supplier.name,))
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If supplier doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO supplier (
@@ -208,39 +193,22 @@ def insert_supplier(supplier: Supplier) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
-            insert_query,
-            (supplier.name,),
-        )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `supplier` table")
-        new_id = result[0]
-        conn.commit()
+        cur.execute(insert_query, (supplier.name,))
+        new_id = _fetch_id(cur, "supplier")
         logger.info("Inserted supplier: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_photo(photo: Photo) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the photo already exists for the given product_id and zoom
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT id FROM photo WHERE product_id = %s AND zoom = %s",
             (photo.product_id, photo.zoom),
         )
-        existing_id = cursor.fetchone()
-
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If photo doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO photo (
@@ -254,7 +222,7 @@ def insert_photo(photo: Photo) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 photo.product_id,
@@ -264,35 +232,18 @@ def insert_photo(photo: Photo) -> int:
                 photo.perspective,
             ),
         )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `photo` table")
-        new_id = result[0]
-        conn.commit()
+        new_id = _fetch_id(cur, "photo")
         logger.info("Inserted photo: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_category(category: Category) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the category already exists
-        cursor.execute(
-            "SELECT id FROM category WHERE id = %s",
-            (category.id,),
-        )
-        existing_id = cursor.fetchone()
-
+    with cursor() as cur:
+        cur.execute("SELECT id FROM category WHERE id = %s", (category.id,))
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If category doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO category (
@@ -305,43 +256,23 @@ def insert_category(category: Category) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
-            (
-                category.id,
-                category.name,
-                category.level,
-                category.order_value,
-            ),
+            (category.id, category.name, category.level, category.order_value),
         )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `category` table")
-        new_id = result[0]
-        conn.commit()
+        new_id = _fetch_id(cur, "category")
         logger.info("Inserted category: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_product_category(product_category: ProductCategory) -> None:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the product category already exists
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT COUNT(*) FROM product_category WHERE product_id = %s AND category_id = %s",
             (product_category.product_id, product_category.category_id),
         )
-
-        count = cursor.fetchone()
-
+        count = cur.fetchone()
         if count and count[0] > 0:
-            # If the record already exists, do nothing
             logger.info(
                 "Product category already exists: %s, %s",
                 product_category.product_id,
@@ -349,7 +280,6 @@ def insert_product_category(product_category: ProductCategory) -> None:
             )
             return
 
-        # If product category doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO product_category (
@@ -359,31 +289,19 @@ def insert_product_category(product_category: ProductCategory) -> None:
             VALUES (%s, %s)
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
-            (
-                product_category.product_id,
-                product_category.category_id,
-            ),
+            (product_category.product_id, product_category.category_id),
         )
-        conn.commit()
         logger.info(
             "Inserted product category: %s, %s",
             product_category.product_id,
             product_category.category_id,
         )
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_price_instruction(instruction: PriceInstruction) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the instruction already exists for the given product_id
+    with cursor() as cur:
         check_query = sql.SQL(
             """
             SELECT id
@@ -393,19 +311,14 @@ def insert_price_instruction(instruction: PriceInstruction) -> int:
             AND bulk_price = %s
         """
         )
-        cursor.execute(
+        cur.execute(
             check_query,
-            (
-                instruction.product_id,
-                instruction.unit_price,
-                instruction.bulk_price,
-            ),
+            (instruction.product_id, instruction.unit_price, instruction.bulk_price),
         )
-        existing_id = cursor.fetchone()
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If instruction doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO price_instruction (
@@ -422,7 +335,7 @@ def insert_price_instruction(instruction: PriceInstruction) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 instruction.product_id,
@@ -449,36 +362,21 @@ def insert_price_instruction(instruction: PriceInstruction) -> int:
                 instruction.increment_bunch_amount,
             ),
         )
-
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `price_instruction` table")
-        new_id = result[0]
-        conn.commit()
+        new_id = _fetch_id(cur, "price_instruction")
         logger.info("Inserted price instruction: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_nutrition_information(nutrition_info: NutritionInformation) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Check if the nutrition information already exists for the given product_id
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT id FROM nutrition_information WHERE product_id = %s",
             (nutrition_info.product_id,),
         )
-        existing_id = cursor.fetchone()
-
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If nutrition information doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO nutrition_information (
@@ -490,7 +388,7 @@ def insert_nutrition_information(nutrition_info: NutritionInformation) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 nutrition_info.product_id,
@@ -498,29 +396,18 @@ def insert_nutrition_information(nutrition_info: NutritionInformation) -> int:
                 nutrition_info.ingredients,
             ),
         )
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `nutrition_information` table")
-        new_id = result[0]
-        conn.commit()
+        new_id = _fetch_id(cur, "nutrition_information")
         logger.info("Inserted nutrition information: %s", new_id)
         return int(new_id)
 
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
-
 
 def insert_scanned_product(scanned_product: ScannedProduct) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT product_id FROM scanned_products WHERE product_id = %s",
             (scanned_product.product_id,),
         )
-        existing_id = cursor.fetchone()
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
@@ -531,7 +418,7 @@ def insert_scanned_product(scanned_product: ScannedProduct) -> int:
             RETURNING product_id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 scanned_product.product_id,
@@ -540,47 +427,25 @@ def insert_scanned_product(scanned_product: ScannedProduct) -> int:
                 scanned_product.scanned_at,
             ),
         )
-
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `scanned_products` table")
-        new_id = result[0]
-
-        conn.commit()
+        new_id = _fetch_id(cur, "scanned_products")
         logger.info(
             "Inserted scanned product: %s (cat: %s, subcat: %s)",
             scanned_product.product_id,
             scanned_product.category_name,
             scanned_product.subcategory_name,
         )
-
         return int(new_id)
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
 
 
 def get_all_scanned_product_ids() -> list[float]:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("SELECT product_id FROM scanned_products")
-        product_ids = [float(row[0]) for row in cursor.fetchall()]
-        return product_ids
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
+    with cursor() as cur:
+        cur.execute("SELECT product_id FROM scanned_products")
+        return [float(row[0]) for row in cur.fetchall()]
 
 
 def get_scanned_non_stored_product_ids() -> list[float]:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             """
             SELECT product_id
             FROM scanned_products
@@ -590,46 +455,25 @@ def get_scanned_non_stored_product_ids() -> list[float]:
             )
             """
         )
-        product_ids = [float(row[0]) for row in cursor.fetchall()]
-        return product_ids
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
+        return [float(row[0]) for row in cur.fetchall()]
 
 
 def count_scanned_products() -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        cursor.execute("SELECT COUNT(*) FROM scanned_products")
-        result = cursor.fetchone()
-        if result is not None:
-            count = int(result[0])
-            return count
-        else:
-            return 0
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
+    with cursor() as cur:
+        cur.execute("SELECT COUNT(*) FROM scanned_products")
+        result = cur.fetchone()
+        return int(result[0]) if result is not None else 0
 
 
 def insert_html_category(html_category: HtmlCategoryDB) -> int:
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        # Return existing ID if hash_value already exists
-        cursor.execute(
+    with cursor() as cur:
+        cur.execute(
             "SELECT id FROM html_category WHERE hash_value = %s", (html_category.hash_value,)
         )
-        existing_id = cursor.fetchone()
+        existing_id = cur.fetchone()
         if existing_id:
             return int(existing_id[0])
 
-        # If hash_value doesn't exist, perform insert
         insert_query = sql.SQL(
             """
             INSERT INTO html_category (html, category_name, subcategory_name, hash_value)
@@ -637,7 +481,7 @@ def insert_html_category(html_category: HtmlCategoryDB) -> int:
             RETURNING id
         """
         )
-        cursor.execute(
+        cur.execute(
             insert_query,
             (
                 html_category.html,
@@ -646,57 +490,20 @@ def insert_html_category(html_category: HtmlCategoryDB) -> int:
                 html_category.hash_value,
             ),
         )
-
-        result = cursor.fetchone()
-        if not result:
-            raise ValueError("No ID returned from `html_category` table")
-        new_id = result[0]
-
-        conn.commit()
-
+        new_id = _fetch_id(cur, "html_category")
         logger.info(
             "Inserted HTML category: %s - %s",
             html_category.category_name,
             html_category.subcategory_name,
         )
-
         return int(new_id)
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
 
 
 def count_elements_in_table(table_name: str) -> int:
-    """
-    Count the number of elements in a PostgreSQL table.
-
-    Args:
-        table_name (str): The name of the table.
-
-    Returns:
-        Union[int, None]: The count of elements in the table, or None if an error occurs.
-    """
-    conn = get_valid_connection()
-    cursor = conn.cursor()
-
-    try:
-        query = f"SELECT COUNT(*) FROM {table_name};"
-
-        cursor.execute(query)
-
-        # count = cursor.fetchone()[0]
-        result = cursor.fetchone()
+    """Count the number of rows in a table."""
+    with cursor() as cur:
+        cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name)))
+        result = cur.fetchone()
         if not result:
             raise ValueError(f"No count returned from table `{table_name}`.")
-        count = result[0]
-
-        # Close the cursor and connection
-        cursor.close()
-        conn.close()
-
-        return int(count)
-
-    finally:
-        cursor.close()
-        connection_pool.putconn(conn)
+        return int(result[0])

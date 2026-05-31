@@ -3,6 +3,7 @@ from pathlib import Path
 
 from src import db
 from src.config.logger import logger
+from src.config.settings import settings
 from src.models import ScannedProduct
 from src.scraper import get_product_basic
 from src.scraper.get_product_basic import ProductsState
@@ -10,7 +11,7 @@ from src.vpn import Vpn
 
 N_TRIES = 250
 
-VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs")
+VPN_CFG_FOLDER_PATH: Path | None = Path("vpn_configs") if settings.use_vpn_scan else None
 
 
 def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct]:
@@ -37,7 +38,7 @@ def get_scanned_products(partial_scan: str | None = None) -> list[ScannedProduct
 
 def main(partial_scan: str | None = None):
     products = get_scanned_products(partial_scan=partial_scan)
-    with open("scanned_prodcts.pkl", "wb") as f:
+    with open("scanned_products.pkl", "wb") as f:
         pickle.dump(products, f)
 
     products_ids = [product.product_id for product in products]
@@ -51,5 +52,4 @@ def main(partial_scan: str | None = None):
     logger.info("Number of new products: %s", len(new_products))
     for new_product in new_products:
         logger.debug("Parsing product: %s", new_product.product_id)
-        db.insert_scanned_product(new_product)
         db.insert_scanned_product(new_product)

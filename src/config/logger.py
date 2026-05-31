@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-from pathlib import Path
 
 LOGGER_NAME = "prices-spb"
 
@@ -23,10 +22,6 @@ class PackagePathFilter(logging.Filter):
 
 
 def setup_logger(log_level: int, log_file_path: str = "logger_msgs.log"):
-    # Check if the file exists and delete it
-    if Path(log_file_path).exists():
-        Path(log_file_path).unlink()
-
     logger_ = logging.getLogger(LOGGER_NAME)
     logger_.setLevel(log_level)
 
@@ -40,17 +35,14 @@ def setup_logger(log_level: int, log_file_path: str = "logger_msgs.log"):
     stream_handler.addFilter(PackagePathFilter())
     stream_handler.setFormatter(formatter)
 
-    # Create a FileHandler to store logs in a file
-    try:
-        file_handler = logging.FileHandler(log_file_path, mode="a")
-        file_handler.setLevel(log_level)
-        file_handler.addFilter(PackagePathFilter())
-        file_handler.setFormatter(formatter)
-        if file_handler not in logger_.handlers:
-            logger_.addHandler(file_handler)
-    except AttributeError:
-        pass
+    # Create a FileHandler to store logs in a file (mode="w" starts a fresh file each run)
+    file_handler = logging.FileHandler(log_file_path, mode="w")
+    file_handler.setLevel(log_level)
+    file_handler.addFilter(PackagePathFilter())
+    file_handler.setFormatter(formatter)
 
+    if file_handler not in logger_.handlers:
+        logger_.addHandler(file_handler)
     if stream_handler not in logger_.handlers:
         logger_.addHandler(stream_handler)
 

@@ -1,4 +1,3 @@
-import os
 import random
 import socket
 import subprocess
@@ -6,11 +5,10 @@ import time
 from pathlib import Path
 from threading import Thread
 
-import dns.resolver
 import httpx
-from httpx import AsyncHTTPTransport, HTTPTransport, Request, Response
 
 from src.config.logger import logger
+from src.config.settings import settings
 
 
 def extract_hostname_from_ovpn(config_file_path: str | Path) -> str | None:
@@ -153,9 +151,8 @@ class Vpn:
 
 def connect_to_vpn(config_file_path):
     try:
-        # Get username and password from environment variables
-        username = os.environ.get("VPN_USERNAME")
-        password = os.environ.get("VPN_PASSWORD")
+        username = settings.vpn_username
+        password = settings.vpn_password
 
         if not username or not password:
             raise ValueError("VPN_USERNAME or VPN_PASSWORD environment variables not set")
@@ -184,7 +181,7 @@ def connect_to_vpn(config_file_path):
 
             output = vpn_process.stdout.readline()
             if output:
-                print(output.strip())  # Optionally print the output for debugging
+                logger.debug("openvpn: %s", output.strip())
 
                 if "Initialization Sequence Completed" in output:
                     connected = True
@@ -199,7 +196,7 @@ def connect_to_vpn(config_file_path):
         return vpn_process if connected else None
 
     except (subprocess.CalledProcessError, TimeoutError, ValueError) as e:
-        print(f"Error: {e}")
+        logger.error("Error connecting to VPN: %s", e)
         return None
 
     finally:
@@ -215,9 +212,9 @@ def get_public_ip():
             if response.status_code == 200:
                 return response.text
             else:
-                print("Failed to retrieve IP:", response.status_code)
+                logger.warning("Failed to retrieve public IP: %s", response.status_code)
     except httpx.RequestError as e:
-        print("Error:", e)
+        logger.warning("Error retrieving public IP: %s", e)
 
 
 def kill_vpn():
@@ -232,51 +229,3 @@ def get_ovpn_files(folder_path: str | Path) -> list[Path]:
     ovpn_files = list(folder_path.glob("*.ovpn"))
     random.shuffle(ovpn_files)
     return ovpn_files
-
-
-class NameSolver:
-    # https://github.com/encode/httpx/issues/1444
-    def __init__(self) -> None:
-        self._resolver = dns.resolver.Resolver()
-        self._resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
-        self._resolver.lifetime = 5.0
-
-    def get(self, name: str) -> str:
-        if name.endswith(".mercadona.es"):
-            try:
-                answer = self._resolver.resolve(name, "A")
-                return str(answer[0])
-            except dns.exception.DNSException as exc:
-                msg = f"DNS resolution failed for {name}: {exc}. Falling back to system DNS."
-                logger.warning(msg)
-        return ""
-
-    def resolve(self, request: Request) -> Request:
-        host = request.url.host
-        ip = self.get(host)
-
-        if ip:
-            request.extensions["sni_hostname"] = host
-            request.url = request.url.copy_with(host=ip)
-
-        return request
-
-
-class CustomHost(HTTPTransport):
-    def __init__(self, solver: NameSolver, *args, **kwargs) -> None:
-        self.solver = solver
-        super().__init__(*args, **kwargs)
-
-    def handle_request(self, request: Request) -> Response:
-        request = self.solver.resolve(request)
-        return super().handle_request(request)
-
-
-class AsyncCustomHost(AsyncHTTPTransport):
-    def __init__(self, solver: NameSolver, *args, **kwargs) -> None:
-        self.solver = solver
-        super().__init__(*args, **kwargs)
-
-    async def handle_async_request(self, request: Request) -> Response:
-        request = self.solver.resolve(request)
-        return await super().handle_async_request(request)

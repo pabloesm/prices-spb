@@ -2,10 +2,10 @@ import argparse
 import asyncio
 
 from src import scan_products, store_products_remote
-from src.config.environment_vars import EnvironmentVars
 from src.config.logger import setup_logger
+from src.config.settings import settings
 
-logger = setup_logger(EnvironmentVars().get_logging_level())
+logger = setup_logger(settings.logging_level)
 
 
 def main():
@@ -25,12 +25,12 @@ def main():
         "-p",
         type=str,
         choices=[
-            "first_half", 
-            "second_half", 
-            "first_quarter", 
-            "second_quarter", 
-            "third_quarter", 
-            "fourth_quarter"
+            "first_half",
+            "second_half",
+            "first_quarter",
+            "second_quarter",
+            "third_quarter",
+            "fourth_quarter",
         ],
         required=False,
         help="Scan/store only a part of the products",

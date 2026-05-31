@@ -1,18 +1,17 @@
 import asyncio
-import os
 from pathlib import Path
 
 import httpx
 
 from src import db
 from src.config.logger import logger
+from src.config.settings import settings
+from src.dns_override import AsyncCustomHost, NameSolver
 from src.store_products import store_product
-from src.vpn import AsyncCustomHost, NameSolver, Vpn
+from src.vpn import Vpn
 
 VPN_CFG_FOLDER_PATH = Path("vpn_configs")
-API_URL_TEMPLATE = os.environ.get("API_URL_TEMPLATE", "empty_url")
-if not API_URL_TEMPLATE or API_URL_TEMPLATE == "empty_url":
-    raise ValueError("API_URL_TEMPLATE environment variable must be provided")
+API_URL_TEMPLATE = settings.api_url_template
 
 
 async def make_request(session, product_id):

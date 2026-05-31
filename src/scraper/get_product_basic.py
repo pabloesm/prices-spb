@@ -1,4 +1,3 @@
-import os
 import time
 from asyncio.exceptions import InvalidStateError
 from datetime import datetime
@@ -8,30 +7,17 @@ from playwright._impl._errors import Error as pw_Error
 from playwright.sync_api import TimeoutError as pw_TimeoutError
 from playwright.sync_api import sync_playwright
 from playwright.sync_api._generated import Locator
-from pydantic import BaseModel
 
 from src.config.logger import logger
+from src.config.settings import settings
 from src.models import ScannedProduct
 from src.scraper import exceptions, utils
 from src.scraper.product_state import ProductsState
-
-if os.getenv("URL_SEED") is None:
-    raise ValueError("URL_SEED environment variable not set.")
 
 SLEEP_TIME_SECONDS = 1
 PW_TIMEOUT_MS = 15000
 NAV_TIMEOUT_MS = 30000
 CATEGORY_MENU_SELECTOR = "css=span.category-menu__header"
-
-
-class ScanState(BaseModel):
-    scanned_products: list[ScannedProduct]
-    category_name: str
-    subcategory_name: str
-    is_started: bool
-    is_finished: bool
-    pending_prodcuts: list[str] = []
-    done_products: list[str] = []
 
 
 def compute(products_state: ProductsState, partial_scan: str | None = None) -> ProductsState:
@@ -64,7 +50,9 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
 
     try:
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True, slow_mo=None, timeout=PW_TIMEOUT_MS)
+            browser = p.chromium.launch(
+                headless=settings.playwright_headless, slow_mo=None, timeout=PW_TIMEOUT_MS
+            )
             page = browser.new_page()
             page.set_default_timeout(PW_TIMEOUT_MS)
             page.set_default_navigation_timeout(PW_TIMEOUT_MS)
@@ -82,7 +70,7 @@ def compute(products_state: ProductsState, partial_scan: str | None = None) -> P
             page.on("requestfinished", _untrack_request)
             page.on("requestfailed", _untrack_request)
 
-            url_seed = os.getenv("URL_SEED", "default_invalid_url")
+            url_seed = settings.url_seed
             logger.info("Navigating to URL_SEED")
             response = page.goto(url_seed, timeout=NAV_TIMEOUT_MS, wait_until="domcontentloaded")
             status = response.status if response is not None else None
