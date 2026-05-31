@@ -51,13 +51,17 @@ def get_valid_connection() -> psycopg2.extensions.connection:
 def cursor():
     """Yield a cursor on a healthy pooled connection.
 
-    Commits on clean exit and always returns the connection to the pool.
+    Commits on clean exit, rolls back on error (so a failed transaction never returns
+    to the pool in an aborted state), and always returns the connection to the pool.
     """
     conn = get_valid_connection()
     cur = conn.cursor()
     try:
         yield cur
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         cur.close()
         connection_pool.putconn(conn)
@@ -498,7 +502,7 @@ def insert_html_category(html_category: HtmlCategoryDB) -> int:
 def count_elements_in_table(table_name: str) -> int:
     """Count the number of rows in a table."""
     with cursor() as cur:
-        cur.execute(f"SELECT COUNT(*) FROM {table_name};")
+        cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name)))
         result = cur.fetchone()
         if not result:
             raise ValueError(f"No count returned from table `{table_name}`.")

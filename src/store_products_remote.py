@@ -117,7 +117,7 @@ async def main(partial_store: str | None = None):
                     len(storing_states.get_failed()),
                     len(storing_states.get_success()),
                 )
-                time.sleep(SLEEP_BETWEEN_BATCHES_SECONDS)
+                await asyncio.sleep(SLEEP_BETWEEN_BATCHES_SECONDS)
     finally:
         vpn.kill()
 
