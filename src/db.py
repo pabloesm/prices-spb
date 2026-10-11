@@ -21,12 +21,24 @@ from src.models import (
 
 # NOTE: product ids are floats by schema (e.g. "64.1"); other table ids are ints.
 
-# Create a connection pool
-connection_pool = SimpleConnectionPool(
-    minconn=1,
-    maxconn=20,
-    dsn=settings.database_neon_url,
-)
+_connection_pool: SimpleConnectionPool | None = None
+
+
+def _get_pool() -> SimpleConnectionPool:
+    """Return the process-wide connection pool, creating it on first use.
+
+    Creating it lazily keeps `import src.db` free of side effects: no connection is
+    opened until the first query, so modules that merely import this one (tests, manual
+    routes, stats) do not need a reachable database at import time.
+    """
+    global _connection_pool
+    if _connection_pool is None:
+        _connection_pool = SimpleConnectionPool(
+            minconn=1,
+            maxconn=20,
+            dsn=settings.database_neon_url,
+        )
+    return _connection_pool
 
 
 def is_connection_valid(connection: psycopg2.extensions.connection) -> bool:
@@ -40,10 +52,10 @@ def is_connection_valid(connection: psycopg2.extensions.connection) -> bool:
 
 
 def get_valid_connection() -> psycopg2.extensions.connection:
-    conn = connection_pool.getconn()
+    conn = _get_pool().getconn()
     while not is_connection_valid(conn):
-        connection_pool.putconn(conn)
-        conn = connection_pool.getconn()
+        _get_pool().putconn(conn)
+        conn = _get_pool().getconn()
     return conn  # type: ignore
 
 
@@ -64,7 +76,7 @@ def cursor():
         raise
     finally:
         cur.close()
-        connection_pool.putconn(conn)
+        _get_pool().putconn(conn)
 
 
 def _fetch_id(cur, table: str):
