@@ -46,3 +46,6 @@ jobs:
 
       - name: Mypy
         run: uv run mypy src/
+
+      - name: Pytest
+        run: uv run pytest

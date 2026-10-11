@@ -1,85 +1,73 @@
+"""Integration tests for the DB layer.
+
+Collected only when `TEST_DATABASE_URL` is set (see `conftest.py`). The schema is rebuilt
+from `scripts/create_db.sql` once per module, so the target database must be disposable.
+"""
+
 import json
+import os
+from pathlib import Path
+
+import psycopg2
+import pytest
 
 from src import db
-from src.config.logger import logger
-from src.models import (
-    Badge,
-    Category,
-    NutritionInformation,
-    Photo,
-    PriceInstruction,
-    Product,
-    ProductCategory,
-    ScannedProduct,
-    Supplier,
-)
-from src.scraper.info_parser import InfoParser
+from src.models import ScannedProduct
+from src.store_products import store_product
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
+SCHEMA_FILE = Path(__file__).parents[1] / "scripts" / "create_db.sql"
 
 
-def test_count_elements_in_table():
-    # Act
-    result = db.count_elements_in_table("product")
-    logger.info("Table %s has %s elements", "html_category", result)
+@pytest.fixture(scope="module", autouse=True)
+def fresh_schema() -> None:
+    conn = psycopg2.connect(os.environ["TEST_DATABASE_URL"])
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute(SCHEMA_FILE.read_text(encoding="utf-8"))
+    finally:
+        conn.close()
 
 
-def test_insert_scanned_product():
-    # Arrange
-    with open("tests/fixtures/scanned_products.json", encoding="utf-8") as json_file:
-        scanned_products_dict = json.load(json_file)
+def _load_fixture(name: str) -> list[dict]:
+    with open(FIXTURES_DIR / name, encoding="utf-8") as json_file:
+        items: list[dict] = json.load(json_file)
+    return items
 
-    scanned_products = [ScannedProduct(**item) for item in scanned_products_dict]
 
-    # Act
+def test_count_elements_in_table_on_fresh_schema():
+    assert db.count_elements_in_table("product") == 0
+    assert db.count_elements_in_table("scanned_products") == 0
+
+
+def test_insert_scanned_product_is_idempotent():
+    scanned_products = [ScannedProduct(**item) for item in _load_fixture("scanned_products.json")]
+    unique_ids = {product.product_id for product in scanned_products}
+
     for scanned_product in scanned_products:
-        pid = db.insert_scanned_product(scanned_product)
-        logger.info("Inserted scanned product: %s", pid)
-    logger.info("Inserted %s products", len(scanned_products))
+        db.insert_scanned_product(scanned_product)
+    # A second pass must not create duplicates.
+    for scanned_product in scanned_products:
+        db.insert_scanned_product(scanned_product)
+
+    assert db.count_elements_in_table("scanned_products") == len(unique_ids)
+    assert set(db.get_all_scanned_product_ids()) == unique_ids
 
 
-def test_insert_product_full():
-    # Arrange
-    with open("tests/fixtures/products_full.json", encoding="utf-8") as json_file:
-        products_full_dict = json.load(json_file)
+def test_store_product_full_is_idempotent():
+    items = _load_fixture("products_full.json")
+    expected_ids = {float(item["id"]) for item in items}
 
-    products = []
-    for item in products_full_dict:
-        badge_data = InfoParser.badge(item)
-        bagde_id = db.insert_badge(Badge(**badge_data))
+    for item in items:
+        store_product(item)
+    # A second pass must not create duplicate products.
+    for item in items:
+        store_product(item)
 
-        supplier_data = InfoParser.supplier(item)
-        supplier_id = db.insert_supplier(Supplier(**supplier_data))
+    assert db.count_elements_in_table("product") == len(expected_ids)
+    assert db.count_elements_in_table("nutrition_information") == len(expected_ids)
+    assert db.count_elements_in_table("photo") == sum(len(item["photos"]) for item in items)
 
-        product_data = InfoParser.product(item)
-        product_data["badge_id"] = bagde_id
-        product_data["supplier_id"] = supplier_id
-        products.append(Product(**product_data))
-        product_id = db.insert_product(Product(**product_data))
-
-        photos_data = InfoParser.photo(item)
-        for photo_data in photos_data:
-            photo_data["product_id"] = product_id
-            db.insert_photo(Photo(**photo_data))
-
-        categories_data = InfoParser.category(item)
-        categories_ids = []
-        for category_data in categories_data:
-            categories_ids.append(db.insert_category(Category(**category_data)))
-
-        for category_id in categories_ids:
-            db.insert_product_category(
-                ProductCategory(
-                    product_id=product_id,
-                    category_id=category_id,
-                )
-            )
-
-        price_data = InfoParser.price_instruction(item)
-        price_data["product_id"] = product_id
-        db.insert_price_instruction(PriceInstruction(**price_data))
-
-        nutrition_data = InfoParser.nutrition_information(item)
-        nutrition_data["product_id"] = product_id
-        db.insert_nutrition_information(NutritionInformation(**nutrition_data))
-
-    # Act
-    # Assert
+    with db.cursor() as cur:
+        cur.execute("SELECT id FROM product")
+        assert {float(row[0]) for row in cur.fetchall()} == expected_ids
