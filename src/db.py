@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from datetime import datetime
 
 import psycopg2.extensions
 from psycopg2 import sql
@@ -468,6 +469,71 @@ def get_scanned_non_stored_product_ids() -> list[float]:
             """
         )
         return [float(row[0]) for row in cur.fetchall()]
+
+
+def get_product_ids_to_store(recheck_unavailable_after_days: int) -> list[float]:
+    """Scanned product ids worth fetching now.
+
+    Everything not marked unavailable, plus unavailable products whose last check is
+    older than `recheck_unavailable_after_days`. Ordered by id so that partial runs
+    (first_half / second_half) slice a stable list.
+    """
+    with cursor() as cur:
+        cur.execute(
+            """
+            SELECT product_id
+            FROM scanned_products
+            WHERE unavailable_since IS NULL
+               OR last_checked_at IS NULL
+               OR last_checked_at < NOW() - make_interval(days => %s)
+            ORDER BY product_id
+            """,
+            (recheck_unavailable_after_days,),
+        )
+        return [float(row[0]) for row in cur.fetchall()]
+
+
+def record_store_outcome(
+    available_ids: list[float], unavailable_ids: list[float], checked_at: datetime
+) -> None:
+    """Persist what the store flow learned about each product's availability."""
+    if not available_ids and not unavailable_ids:
+        return
+    with cursor() as cur:
+        if available_ids:
+            cur.execute(
+                """
+                UPDATE scanned_products
+                SET unavailable_since = NULL, last_checked_at = %s
+                WHERE product_id = ANY(%s::numeric[])
+                """,
+                (checked_at, available_ids),
+            )
+        if unavailable_ids:
+            cur.execute(
+                """
+                UPDATE scanned_products
+                SET unavailable_since = COALESCE(unavailable_since, %s), last_checked_at = %s
+                WHERE product_id = ANY(%s::numeric[])
+                """,
+                (checked_at, checked_at, unavailable_ids),
+            )
+
+
+def clear_unavailable(product_ids: list[float]) -> int:
+    """Mark products as available again (the scan saw them in the catalogue)."""
+    if not product_ids:
+        return 0
+    with cursor() as cur:
+        cur.execute(
+            """
+            UPDATE scanned_products
+            SET unavailable_since = NULL
+            WHERE product_id = ANY(%s::numeric[]) AND unavailable_since IS NOT NULL
+            """,
+            (product_ids,),
+        )
+        return int(cur.rowcount)
 
 
 def count_scanned_products() -> int:

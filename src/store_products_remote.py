@@ -1,5 +1,24 @@
+"""Store flow: fetch each scanned product from the Mercadona API and POST it to the worker.
+
+Outcome model (per product, per run):
+
+- ``STORED``: fetched, parsed and accepted by the worker.
+- ``UNAVAILABLE``: the API answered 404. The product is delisted; it is recorded in
+  ``scanned_products.unavailable_since`` and only re-checked every
+  ``RECHECK_UNAVAILABLE_AFTER_DAYS`` instead of on every run.
+- ``FAILED``: a transient error (timeout, 429, 5xx, bad JSON) that persisted for
+  ``MAX_STORE_TRIES`` passes, or a permanent one (our parser rejected the payload, the
+  worker rejected the request). Logged once, with the reason, when the product gives up.
+
+The run exits non-zero only when the failure pattern looks systemic (nothing stored, or
+more than ``FAILURE_RATE_THRESHOLD`` of the attempted products failed), never because of
+the expected churn of delisted products.
+"""
+
 import asyncio
 import time
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -34,168 +53,270 @@ MAX_STORE_TRIES = 3
 BATCH_SIZE = 35
 SLEEP_BETWEEN_BATCHES_SECONDS = 10
 SLEEP_BETWEEN_REQUESTS_SECONDS = 0.1
+REQUEST_TIMEOUT_SECONDS = 5.0
+# A product the API answered 404 for is re-checked this often instead of on every run.
+RECHECK_UNAVAILABLE_AFTER_DAYS = 7
+# Exit non-zero when more than this share of the attempted products (404s excluded)
+# failed. That signals a broken API, worker or parser rather than delisted products.
+FAILURE_RATE_THRESHOLD = 0.2
+
+
+class StoreError(Exception):
+    """Base class for one product's store failure."""
+
+
+class TransientError(StoreError):
+    """Worth retrying on a later pass: network errors, 429, 5xx, malformed bodies."""
+
+
+class PermanentError(StoreError):
+    """Retrying will not help: our parser rejected the payload or the worker rejected it."""
+
+
+class ProductUnavailableError(StoreError):
+    """The API answered 404: the product is not in the catalogue right now."""
 
 
 class ProductStoringStatus(Enum):
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
+    UNAVAILABLE = "unavailable"
+
+
+class Outcome(Enum):
+    """Result of one attempt at one product."""
+
+    STORED = "stored"
+    UNAVAILABLE = "unavailable"
+    TRANSIENT = "transient"
+    PERMANENT = "permanent"
+
+
+@dataclass
+class AttemptResult:
+    product_id: float
+    outcome: Outcome
+    error: str | None = None
 
 
 class StoringState(BaseModel):
     product_id: float
     status: ProductStoringStatus = ProductStoringStatus.PENDING
     n_tries: int = 0
+    last_error: str | None = None
 
 
 class StoringStates:
     def __init__(self, storing_initial_state: list[StoringState]) -> None:
         self.storing_states: list[StoringState] = storing_initial_state
-        self._is_finished = False
+        self._by_id = {state.product_id: state for state in storing_initial_state}
 
-    @property
-    def is_finished(self) -> bool:
-        return bool(self._is_finished)
+    def pending(self) -> list[StoringState]:
+        return self.with_status(ProductStoringStatus.PENDING)
 
-    @is_finished.setter
-    def is_finished(self, value: bool) -> None:
-        self._is_finished = value
+    def with_status(self, status: ProductStoringStatus) -> list[StoringState]:
+        return [state for state in self.storing_states if state.status == status]
 
-    def get_pending(self) -> list[StoringState]:
-        # Set failed states if necessary
-        for state in self.storing_states:
-            if state.n_tries >= MAX_STORE_TRIES:
-                state.status = ProductStoringStatus.FAILED
-                logger.warning(
-                    "Product %s failed to store after %s tries",
-                    state.product_id,
-                    MAX_STORE_TRIES,
-                )
+    def apply(self, results: list[AttemptResult]) -> None:
+        """Fold one batch of attempt results into the states.
 
-        return [
-            state for state in self.storing_states if state.status == ProductStoringStatus.PENDING
-        ]
+        A product is logged exactly once, at the moment it reaches a terminal state.
+        """
+        for result in results:
+            state = self._by_id[result.product_id]
+            if result.outcome is Outcome.STORED:
+                state.status = ProductStoringStatus.SUCCESS
+            elif result.outcome is Outcome.UNAVAILABLE:
+                state.status = ProductStoringStatus.UNAVAILABLE
+                logger.debug("Product %s unavailable (404)", state.product_id)
+            else:
+                state.n_tries += 1
+                state.last_error = result.error
+                gave_up = result.outcome is Outcome.PERMANENT or state.n_tries >= MAX_STORE_TRIES
+                if gave_up:
+                    state.status = ProductStoringStatus.FAILED
+                    logger.warning(
+                        "Product %s failed to store after %s tries: %s",
+                        state.product_id,
+                        state.n_tries,
+                        state.last_error,
+                    )
 
-    def get_failed(self) -> list[StoringState]:
-        return [
-            state for state in self.storing_states if state.status == ProductStoringStatus.FAILED
-        ]
-
-    def get_success(self) -> list[StoringState]:
-        return [
-            state for state in self.storing_states if state.status == ProductStoringStatus.SUCCESS
-        ]
+    def counts(self) -> str:
+        return (
+            f"Pending: {len(self.pending())} -- "
+            f"Stored: {len(self.with_status(ProductStoringStatus.SUCCESS))} -- "
+            f"Unavailable: {len(self.with_status(ProductStoringStatus.UNAVAILABLE))} -- "
+            f"Failed: {len(self.with_status(ProductStoringStatus.FAILED))}"
+        )
 
 
-async def main(partial_store: str | None = None):
+async def main(partial_store: str | None = None) -> int:
+    """Run the store flow; return the process exit code (0 = healthy run)."""
     vpn = Vpn(configs_folder=VPN_CFG_FOLDER_PATH)
     try:
         warm_up_endpoint()
-        stored_products_ids = db.get_all_scanned_product_ids()
+        candidate_ids = db.get_product_ids_to_store(RECHECK_UNAVAILABLE_AFTER_DAYS)
+        states = [StoringState(product_id=product_id) for product_id in candidate_ids]
+        states = _sample_storing_states(states, partial_store)
+        storing_states = StoringStates(states)
+        logger.info("Products to store: %s (candidates: %s)", len(states), len(candidate_ids))
 
-        store_product_states = [
-            StoringState(product_id=product_id) for product_id in stored_products_ids
-        ]
-
-        store_product_states = _sample_storing_states(store_product_states, partial_store)
-
-        # Notice that states are mutated during the storing process
-        storing_states = StoringStates(store_product_states)
-
-        # Each pass processes every currently-pending product once, in batches.
-        # Products that fail stay pending and are retried on the next pass (until MAX_STORE_TRIES).
-        while storing_states.get_pending():
-            pending = storing_states.get_pending()
+        # Each pass processes every currently-pending product once, in batches. Products
+        # with transient failures stay pending and are retried on the next pass.
+        while pending := storing_states.pending():
             for start in range(0, len(pending), BATCH_SIZE):
                 vpn.rotate()
                 batch = pending[start : start + BATCH_SIZE]
-                await store_product_details(batch)
-
-                logger.info(
-                    "Pending: %s -- Failed: %s -- Success: %s",
-                    len(storing_states.get_pending()),
-                    len(storing_states.get_failed()),
-                    len(storing_states.get_success()),
-                )
+                results = await store_product_details(batch)
+                storing_states.apply(results)
+                _persist_outcomes(results)
+                logger.info(storing_states.counts())
                 await asyncio.sleep(SLEEP_BETWEEN_BATCHES_SECONDS)
     finally:
         vpn.kill()
 
-
-async def make_request_get(session, product_id: float) -> Any:
-    # Get product details
-    response = await session.get(API_URL_TEMPLATE.format(id=transform_id(product_id)), timeout=5.0)
-    logger.info("Request product %s: Status Code - %s", product_id, response.status_code)
-    return response.json()
+    return summarise(storing_states)
 
 
-async def make_request_post(session, product_details: dict) -> Any:
-    # Store product details
-    data = parse_product_data(product_details)
-    response = await session.post(CF_URL, json=data)
-    logger.info("Stored with CF: %s", response.json())
-    return response.json()
+def summarise(storing_states: StoringStates) -> int:
+    """Log the run summary and decide the exit code."""
+    stored = storing_states.with_status(ProductStoringStatus.SUCCESS)
+    unavailable = storing_states.with_status(ProductStoringStatus.UNAVAILABLE)
+    failed = storing_states.with_status(ProductStoringStatus.FAILED)
+    candidates = len(storing_states.storing_states)
+    attempted = len(stored) + len(failed)
+
+    logger.info(
+        "Store summary: candidates=%s stored=%s unavailable=%s failed=%s",
+        candidates,
+        len(stored),
+        len(unavailable),
+        len(failed),
+    )
+    if failed:
+        logger.warning(
+            "Failed product ids: %s", ", ".join(str(state.product_id) for state in failed)
+        )
+
+    if candidates > 0 and not stored:
+        logger.error("Nothing was stored out of %s candidates", candidates)
+        return 1
+    failure_rate = len(failed) / attempted if attempted else 0.0
+    if failure_rate > FAILURE_RATE_THRESHOLD:
+        logger.error(
+            "Failure rate %.0f%% exceeds the %.0f%% threshold",
+            failure_rate * 100,
+            FAILURE_RATE_THRESHOLD * 100,
+        )
+        return 1
+    return 0
 
 
-async def store_product_details(products_state: list[StoringState]):
-    async with httpx.AsyncClient(transport=AsyncCustomHost(NameSolver()), timeout=5.0) as session:
-        product_details = await _fetch_all(session, products_state)
-        posts_responses = await _post_all(session, product_details)
-        success_ids = _extract_success_ids(posts_responses)
-        _update_states(products_state, success_ids)
-
-        logger.debug("Posts responses: %s", posts_responses)
-        logger.info("Tried: %s -- Stored: %s", len(products_state), len(success_ids))
+def _persist_outcomes(results: list[AttemptResult]) -> None:
+    now = datetime.now(UTC).replace(tzinfo=None)
+    available = [r.product_id for r in results if r.outcome is Outcome.STORED]
+    unavailable = [r.product_id for r in results if r.outcome is Outcome.UNAVAILABLE]
+    db.record_store_outcome(available, unavailable, checked_at=now)
 
 
-async def _fetch_all(session, products_state: list[StoringState]) -> list[Any]:
-    """Fetch product details for the batch, one GET per product."""
-    tasks = []
-    for product_state in products_state:
-        tasks.append(asyncio.create_task(make_request_get(session, product_state.product_id)))
-        await asyncio.sleep(SLEEP_BETWEEN_REQUESTS_SECONDS)  # avoid sending requests too quickly
-    return await asyncio.gather(*tasks, return_exceptions=True)
+async def store_product_details(
+    products_state: list[StoringState],
+    transport: httpx.AsyncBaseTransport | None = None,
+) -> list[AttemptResult]:
+    """Fetch, parse and POST every product in the batch; one result per product."""
+    transport = transport or AsyncCustomHost(NameSolver())
+    async with httpx.AsyncClient(transport=transport, timeout=REQUEST_TIMEOUT_SECONDS) as session:
+        tasks = []
+        for product_state in products_state:
+            tasks.append(asyncio.create_task(_store_one(session, product_state.product_id)))
+            await asyncio.sleep(SLEEP_BETWEEN_REQUESTS_SECONDS)  # avoid bursts
+        return list(await asyncio.gather(*tasks))
 
 
-async def _post_all(session, product_details: list[Any]) -> list[Any]:
-    """Store each successfully-fetched product via the Cloudflare endpoint."""
-    tasks = [
-        asyncio.create_task(make_request_post(session, details))
-        for details in product_details
-        if isinstance(details, dict)
-    ]
-    return await asyncio.gather(*tasks, return_exceptions=True)
+async def _store_one(session: httpx.AsyncClient, product_id: float) -> AttemptResult:
+    try:
+        details = await fetch_product(session, product_id)
+    except ProductUnavailableError:
+        return AttemptResult(product_id, Outcome.UNAVAILABLE)
+    except TransientError as exc:
+        return AttemptResult(product_id, Outcome.TRANSIENT, str(exc))
+
+    try:
+        data = parse_product_data(details)
+    except Exception as exc:  # any parser/validation error is final for this payload
+        return AttemptResult(
+            product_id, Outcome.PERMANENT, f"parse error: {type(exc).__name__}: {exc}"
+        )
+
+    try:
+        stored_id = await post_product(session, data)
+    except TransientError as exc:
+        return AttemptResult(product_id, Outcome.TRANSIENT, str(exc))
+    except PermanentError as exc:
+        return AttemptResult(product_id, Outcome.PERMANENT, str(exc))
+
+    if stored_id != product_id:
+        logger.warning("Worker stored %s but %s was requested", stored_id, product_id)
+    return AttemptResult(product_id, Outcome.STORED)
 
 
-def _extract_success_ids(posts_responses: list[Any]) -> list:
-    """Pull the productId out of each successful POST response."""
-    success_ids = []
-    for response in posts_responses:
-        if not isinstance(response, dict):
-            continue
-        product_id = response.get("productId")
-        if product_id is None:
-            logger.warning("POST response missing 'productId': %s", response)
-            continue
-        success_ids.append(product_id)
-    return success_ids
+async def fetch_product(session: httpx.AsyncClient, product_id: float) -> dict:
+    """GET the product from the API, classifying the response."""
+    url = API_URL_TEMPLATE.format(id=transform_id(product_id))
+    try:
+        response = await session.get(url)
+    except httpx.HTTPError as exc:
+        raise TransientError(f"GET failed: {type(exc).__name__}: {exc}") from exc
+    logger.debug("Request product %s: Status Code - %s", product_id, response.status_code)
+
+    if response.status_code == 404:
+        raise ProductUnavailableError(str(product_id))
+    if response.status_code != 200:
+        raise TransientError(f"GET status {response.status_code}")
+    try:
+        payload = response.json()
+    except ValueError as exc:
+        raise TransientError("GET returned a non-JSON body") from exc
+    if not isinstance(payload, dict):
+        raise TransientError("GET returned a non-object JSON body")
+    return payload
 
 
-def _update_states(products_state: list[StoringState], success_ids: list) -> None:
-    """Mark stored products as SUCCESS; bump the try counter for the rest."""
-    for product_state in products_state:
-        if product_state.product_id in success_ids:
-            product_state.status = ProductStoringStatus.SUCCESS
-        else:
-            product_state.n_tries += 1
+async def post_product(session: httpx.AsyncClient, data: dict) -> float:
+    """POST the parsed product to the worker; return the product id it confirms."""
+    try:
+        response = await session.post(CF_URL, json=data)
+    except httpx.HTTPError as exc:
+        raise TransientError(f"POST failed: {type(exc).__name__}: {exc}") from exc
+
+    body: Any
+    try:
+        body = response.json()
+    except ValueError:
+        body = {}
+    detail = body.get("error") if isinstance(body, dict) else None
+    detail = detail or response.text[:200]
+
+    if response.status_code >= 500:
+        raise TransientError(f"worker status {response.status_code}: {detail}")
+    if response.status_code >= 400:
+        raise PermanentError(f"worker status {response.status_code}: {detail}")
+    if not isinstance(body, dict) or body.get("productId") is None:
+        raise TransientError(f"worker response missing productId: {detail}")
+    logger.debug("Stored with CF: %s", body)
+    return float(body["productId"])
 
 
-def warm_up_endpoint():
+def warm_up_endpoint() -> None:
+    if not CF_URL:
+        raise ValueError("CF_URL environment variable must be provided")
     for _ in range(3):
-        if not CF_URL:
-            raise ValueError("CF_URL environment variable must be provided")
-        response = httpx.get(CF_URL)
-        logger.info("Warm up response: %s", response.json())
+        response = httpx.get(CF_URL, timeout=REQUEST_TIMEOUT_SECONDS)
+        if response.status_code != 200:
+            raise RuntimeError(f"Worker warm-up failed with status {response.status_code}")
+        logger.info("Warm up response: %s", response.text[:200])
         time.sleep(1)
 
 

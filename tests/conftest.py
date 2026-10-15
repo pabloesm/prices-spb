@@ -18,6 +18,13 @@ TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "")
 
 if not TEST_DATABASE_URL:
     collect_ignore = ["db_test.py"]
+    # Unit tests import modules that build `Settings` at import time. Give the required
+    # fields harmless values so the suite needs no environment. The DB pool is created
+    # lazily, so this URL is never dialled.
+    os.environ.setdefault("DATABASE_NEON_URL", "postgresql://unused:unused@127.0.0.1:1/unused")
+    os.environ.setdefault("API_URL_TEMPLATE", "http://api.test/products/{id}/")
+    os.environ.setdefault("CF_URL", "http://worker.test/")
+    os.environ.setdefault("URL_SEED", "http://seed.test/categories/1")
 else:
     if TEST_DATABASE_URL == os.environ.get("DATABASE_NEON_URL"):
         raise pytest.UsageError(
@@ -28,5 +35,6 @@ else:
     # precedence over `.env` in pydantic-settings, so this wins even if a `.env` exists.
     os.environ["DATABASE_NEON_URL"] = TEST_DATABASE_URL
     # Required by `Settings` but irrelevant to the DB tests.
-    for name in ("API_URL_TEMPLATE", "CF_URL", "URL_SEED"):
-        os.environ.setdefault(name, "unused-in-tests")
+    os.environ.setdefault("API_URL_TEMPLATE", "http://api.test/products/{id}/")
+    os.environ.setdefault("CF_URL", "http://worker.test/")
+    os.environ.setdefault("URL_SEED", "http://seed.test/categories/1")
