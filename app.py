@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import sys
 
 from src import scan_products, store_products_remote
 from src.config.logger import setup_logger
@@ -45,7 +46,7 @@ def main():
     if operation == "scan":
         scan_products.main(partial)
     elif operation == "store":
-        asyncio.run(store_products_remote.main(partial))
+        sys.exit(asyncio.run(store_products_remote.main(partial)))
     else:
         print("Invalid option. Please use 'scan' or 'store'.")
 

@@ -116,5 +116,9 @@ CREATE TABLE scanned_products (
     product_id NUMERIC(10,3) PRIMARY KEY,
     category_name VARCHAR(255),
     subcategory_name VARCHAR(255),
-    scanned_at TIMESTAMP
+    scanned_at TIMESTAMP,
+    -- Set when the API answers 404 for the product; cleared when it is seen again.
+    unavailable_since TIMESTAMP,
+    -- Last time the store flow asked the API about this product.
+    last_checked_at TIMESTAMP
 );

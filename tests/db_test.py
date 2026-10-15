@@ -6,6 +6,7 @@ from `scripts/create_db.sql` once per module, so the target database must be dis
 
 import json
 import os
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import psycopg2
@@ -71,3 +72,45 @@ def test_store_product_full_is_idempotent():
     with db.cursor() as cur:
         cur.execute("SELECT id FROM product")
         assert {float(row[0]) for row in cur.fetchall()} == expected_ids
+
+
+def test_availability_bookkeeping_drives_the_store_candidates():
+    scanned = [ScannedProduct(**item) for item in _load_fixture("scanned_products.json")]
+    for scanned_product in scanned:
+        db.insert_scanned_product(scanned_product)
+    all_ids = {product.product_id for product in scanned}
+    live_id, gone_id = sorted(all_ids)[:2]
+    now = datetime(2026, 10, 15, 12, 0, 0)
+
+    # Nothing checked yet: every scanned product is a candidate, in id order.
+    candidates = db.get_product_ids_to_store(recheck_unavailable_after_days=7)
+    assert set(candidates) == all_ids
+    assert candidates == sorted(candidates)
+
+    # A 404 today removes the product from the candidates; a success keeps it.
+    db.record_store_outcome([live_id], [gone_id], checked_at=datetime.now())
+    assert gone_id not in db.get_product_ids_to_store(7)
+    assert live_id in db.get_product_ids_to_store(7)
+
+    # An unavailable product whose last check is old enough is re-probed.
+    db.record_store_outcome([], [gone_id], checked_at=datetime.now() - timedelta(days=8))
+    assert gone_id in db.get_product_ids_to_store(7)
+    assert gone_id not in db.get_product_ids_to_store(30)
+
+    # unavailable_since keeps the first 404 date across re-checks.
+    with db.cursor() as cur:
+        cur.execute(
+            "SELECT unavailable_since FROM scanned_products WHERE product_id = %s", (gone_id,)
+        )
+        first_seen_gone = cur.fetchone()[0]
+    db.record_store_outcome([], [gone_id], checked_at=now)
+    with db.cursor() as cur:
+        cur.execute(
+            "SELECT unavailable_since FROM scanned_products WHERE product_id = %s", (gone_id,)
+        )
+        assert cur.fetchone()[0] == first_seen_gone
+
+    # The scan seeing the product again clears the flag.
+    assert db.clear_unavailable([gone_id, live_id]) == 1
+    assert gone_id in db.get_product_ids_to_store(7)
+    assert db.clear_unavailable([]) == 0

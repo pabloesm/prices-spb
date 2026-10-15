@@ -53,3 +53,6 @@ def main(partial_scan: str | None = None):
     for new_product in new_products:
         logger.debug("Parsing product: %s", new_product.product_id)
         db.insert_scanned_product(new_product)
+
+    reactivated = db.clear_unavailable(products_ids)
+    logger.info("Products marked available again: %s", reactivated)
