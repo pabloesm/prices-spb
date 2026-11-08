@@ -52,7 +52,7 @@ jobs:
           API_URL_TEMPLATE: ${{ vars.API_URL_TEMPLATE }}
           CF_URL: ${{ vars.CF_URL }}
         run: |
-          sudo -E .venv/bin/python app.py --operation scan --partial second_quarter
+          sudo env HOME="$HOME" PYTHONUNBUFFERED=1 DATABASE_NEON_URL="$DATABASE_NEON_URL" URL_SEED="$URL_SEED" VPN_USERNAME="$VPN_USERNAME" VPN_PASSWORD="$VPN_PASSWORD" API_URL_TEMPLATE="$API_URL_TEMPLATE" CF_URL="$CF_URL" .venv/bin/python app.py --operation scan --partial second_quarter
 
       - name: Handle failure
         if: ${{ failure() }}
